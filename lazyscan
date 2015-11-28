@@ -209,7 +209,7 @@ Lets assume your batch number was 3 and the last odd page scanned was 39.
 Turn over the stack of pages so that the last even page faces up.
 Don't try to do anything clever by removing blanks!
 
-    $ lazyscan --adf --even --batch 3 --last-odd 39
+    $ lazyscan --adf --even --batchnum=3 --last-odd=39
     $ lazyscan -A -E -L 39 -N 3     # (short options)
 
 =head1 OPTIONS
@@ -322,7 +322,7 @@ startup file (.bashrc for bash) if you wish.
 
 =head2 C<$SCANHOME/.nextbatch>
 
-Contains the next batch  number to use if C<--batch> is not specified.
+Contains the next batch  number to use if C<--batchnum> is not specified.
 
 The format is just a single line beginning with a number and immediately
 followed by a newline (\n) character.
@@ -364,10 +364,10 @@ or do something with C<$PAPERSIZE> and/or C<paperconf>.
 =head2 Duplexing is still awkward
 
 I'm trying to come up with a *safe* way of automatically inferring sane
-defaults for the C<--batch> and C<--last-odd> parameters
+defaults for the C<--batchnum> and C<--last-odd> parameters
 when using C<--even>.
 
-For now, you must carefully specify C<--batch> and C<--last-odd>.
+For now, you must carefully specify C<--batchnum> and C<--last-odd>.
 
 =head2 Batch numbers used up on failure
 

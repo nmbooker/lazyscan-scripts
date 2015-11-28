@@ -1,0 +1,411 @@
+#!/usr/bin/env perl
+
+use v5.10;
+use strict;
+use warnings;
+use File::Spec;
+use Fcntl qw/:flock SEEK_SET/;
+use autodie qw/:io/;
+use Getopt::Long qw/:config gnu_getopt no_ignore_case/;
+use Carp qw/croak/;
+
+my $numpages;
+my $adf;
+my ($mode, $black, $grey, $colour);
+my $out_format = 'pnm';
+my $batchnum;
+my $start;
+my $noprompt;
+my ($even, $odd, $last_odd);
+my $resolution = 200;   # A better default for what I'm doing than scanimage's of 100
+
+GetOptions(
+    "pages=i" => \$numpages,
+    "adf|A" => \$adf,
+    "black|b" => \$black,
+    "grey|g" => \$grey,
+    "colour|c" => \$colour,
+    "mode=s" => \$mode,
+    "format=s" => \$out_format,
+    "batchnum|N=i" => \$batchnum,
+    "start=i" => \$start,
+    "even|E" => \$even,
+    "odd|O" => \$odd,
+    "last-odd|L=i" => \$last_odd,
+    "resolution|r=i" => \$resolution,
+    "noprompt" => \$noprompt,
+   ) or die("$0: Error in command line arguments\n");
+
+err("--mode, --black, -b, --grey, -g, --colour and -c are mutually exclusive")
+    unless mutex($mode, $black, $grey, $colour);
+
+$mode = 'Lineart' if $black;
+$mode = 'Gray' if $grey;
+$mode = 'Color' if $colour;
+
+err("--even and --odd are mutually exclusive") if $even and $odd;
+err("--start and --last-odd are mutually exclusive") if $start and $last_odd;
+
+if ($even and not ($last_odd or $start)) {
+    err("--even specified without --last-odd or --start");
+}
+
+err("--last-odd argument is even") if defined($last_odd) and even($last_odd);
+
+sub mutex {
+    my $count = 0;
+    foreach my $opt (@_) {
+        $count++ if $opt;
+    }
+    return $count <= 1;
+}
+
+sub even { $_[0] % 2 == 0 }
+
+sub err {
+    croak "$0: Error: ", @_;
+}
+
+sub scandir {
+    $ENV{SCANHOME} or File::Spec->catfile($ENV{HOME}, 'scan')
+}
+
+sub new_batchnum {
+    my $nextbatch_path = File::Spec->catfile(scandir(), '.nextbatch');
+    open my $bf, '+>>', $nextbatch_path;
+    flock($bf, LOCK_EX);
+    seek($bf, 0, SEEK_SET);
+    my $nextnum = <$bf>;
+    chomp $nextnum;
+    $nextnum ||= 1;
+    seek($bf, 0, SEEK_SET);
+    truncate($bf, 0);
+    say $bf ($nextnum + 1);
+    flock($bf, LOCK_UN);
+    return $nextnum;
+}
+
+sub batchfmt {
+    my ($num, $format) = @_;
+    return File::Spec->catfile(
+        scandir(),
+        'inbox',
+        sprintf('b%05d_p%%03d.%s', $num, $format),
+    );
+}
+
+$batchnum ||= new_batchnum();
+my $source = $adf ? 'ADF' : 'Flatbed';
+my $batchfmt = batchfmt($batchnum, $out_format);
+my @batch_count = $numpages ? ("--batch-count=".$numpages) : ();
+
+$start = $last_odd + 1 if $last_odd and not $start;
+$start ||= 1;
+my $increment = do {
+    if ($odd) { 2 }
+    elsif ($even) { -2 }
+    else { 1 }
+};
+
+my @batch_prompt = ($adf or ($noprompt and $numpages and $numpages eq 1)) ? () : qw/--batch-prompt/;
+my @mode = $mode ? ('--mode', $mode) : ();
+
+sub opt_if_true {
+    my ($option, $value) = @_;
+    return $value ? ($option, $value) : ();
+}
+
+my @cmd = (
+    'scanimage',
+    '--source', $source,
+    opt_if_true('--mode', $mode),
+    '--format', $out_format,
+    '--resolution', $resolution,
+    qw/
+          --compression None
+          -x 210 -y 297
+      /,
+    '--batch='.$batchfmt,
+    '--batch-increment='.$increment,
+    @batch_count,
+    @batch_prompt,
+    '--batch-start', $start,
+);
+
+my $ret = system @cmd;
+say "Batch number: $batchnum";
+exit $ret;
+
+
+=head1 NAME
+
+lazyscan - Scan documents to an inbox for later organisation
+
+=head1 USAGE
+
+    $ lazyscan [options]
+
+=head1 DESCRIPTION
+
+Laziness is a virtue in this case.
+
+Scans a series of A4 pages into an inbox directory within C<$SCANHOME>,
+or C<$HOME/scans/inbox> if that is not specified.
+
+Each run of this script produces a new batch number which forms the first
+part of each filename unless you specify C<--batchnum>.
+
+The workflow this is intended to support is:
+
+    1. Get the pages scanned into an 'inbox', listed in page order of scan,
+       as simply as possible but no simpler
+    2. Get them backed up
+    3. Organise the files later (making PDFs etc).
+
+The goal of this script is to make step 1 as simple and quick as possible,
+without distraction of trying to sort the pages into documents.
+
+However, one thing awkward to to at step 3 is organising
+duplexed pages so this script helps to get that right at step 1.
+
+=head1 EXAMPLES
+
+=head2 Scanning from flatbed (simplex or duplex)
+
+    $ lazyscan
+
+C<scanimage> will prompt you for each page in turn.
+Press Enter to scan the next page, or Ctrl+D to end the batch.
+
+If you want both sides of a sheet, place the odd side first, then
+the even side.
+
+=head2 Scanning from ADF (simplex)
+
+    $ lazyscan --adf
+    $ lazyscan -A         # (short options)
+
+=head2 Scanning from ADF (duplex)
+
+
+First load on your pages odds-up, page one on top.
+
+    $ lazyscan --adf --odd
+    $ lazyscan -A -O      # (short options)
+
+At the end, the script will tell you the batch number.
+You should make a note of this and the page number of the last odd page
+scanned.
+
+Lets assume your batch number was 3 and the last odd page scanned was 39.
+
+Turn over the stack of pages so that the last even page faces up.
+Don't try to do anything clever by removing blanks!
+
+    $ lazyscan --adf --even --batch 3 --last-odd 39
+    $ lazyscan -A -E -L 39 -N 3     # (short options)
+
+=head1 OPTIONS
+
+=head2 Basic
+
+These are the ones that form part of the main workflow.
+
+=over 8
+
+=item --black | -b
+
+Scan in binary.
+Equivalent to C<--mode Lineart>
+
+=item --grey | -g
+
+Scan in greyscale.
+Equivalent to C<--mode Gray>
+
+=item --colour | -c
+
+Scan in colour.
+Equivalent to C<--mode Color>
+
+=item --adf | -A
+
+Get pages from the ADF
+
+=item --odd | -O
+
+Scan odd pages on duplex scan.
+
+=item --even | -E
+
+Scan even pages on duplex scan.
+
+=item --last-odd <n> | -L <n>
+
+Specify last odd page number.  Use with C<--even>.
+
+=item --batchnum <n> | -N <n>
+
+Specify the batch number to continue.  Usually used with C<--even> and C<--last-odd>.
+
+Take care with this option - it will overwrite files in the batch if they
+already exist.
+
+=back
+
+=head2 Advanced
+
+You can override the defaults and inferred values from the Basic options
+if you wish, if you know what you're doing.
+
+=over 8
+
+=item --mode <m>
+
+Specify C<< --mode <m> >> parameter to scanimage.
+
+=item --format <f>
+
+Specify --format <m> parameter to scanimage
+
+=item --start <n>
+
+Start numbering pages at <n>
+
+=item --pages <n>
+
+Specify number of pages to scan. Default: until exhausted.
+
+=item --noprompt
+
+Don't prompt for pages even if using flatbed.
+
+This is ignored unless you also specify C<--pages=1>.
+
+=back
+
+=head1 HINTS
+
+=head2 ADF or Flatbed?
+
+If in any doubt as to whether the pages will go through cleanly, scan with the flatbed.
+
+Paper jams aren't worth the extra wear and tear on the ADF mechanism nor
+the extra time it will take you to unjam it and correct the page numbering
+sequence afterwards.
+
+=head2 Scanner Selection
+
+No option is provided to pass a device option on the C<scanimage> command line.
+
+Therefore C<scanimage> will use its own default, or C<$SANE_DEFAULT_DEVICE>
+if specified.  See the C<scanimage> manpage.
+
+So to specify a scanner for your current shell session, do the following:
+
+    $ scanimage -L
+    device `hpaio:/net/Officejet_4500_G510g-m?ip=192.168.1.80' is a Hewlett-Packard Officejet_4500_G510g-m all-in-one
+    $ export SANE_DEFAULT_DEVICE='hpaio:/net/Officejet_4500_G510g-m?ip=192.168.1.80'
+    $ lazyscan
+
+You can put the C<export SANE_DEFAULT_DEVICE>... line into your shell's
+startup file (.bashrc for bash) if you wish.
+
+=head1 FILES
+
+=head2 C<$SCANHOME/.nextbatch>
+
+Contains the next batch  number to use if C<--batch> is not specified.
+
+The format is just a single line beginning with a number and immediately
+followed by a newline (\n) character.
+
+If you really must alter the counter manually, this will do it:
+
+    $ echo 1 > .nextbatch
+
+=head2 C<$SCANHOME/inbox/>
+
+Directory which will contain all newly-scanned files.
+
+=head1 ENVIRONMENT
+
+=head2 C<$SCANHOME>
+
+The root directory of your scan system.  Defaults to C<$HOME/scan>.
+
+=head1 LIMITATIONS
+
+=head2 Scanner support
+
+This uses backend-specific parameters for C<hpaio>.  If they overlap with
+your scanner's backend, all should be good.
+
+This script is optimised for non-duplex scanners,
+which stack the pages on the out tray in the same order as they were put in.
+
+I welcome patches to support more scanners.
+
+=head2 A4 paper
+
+I've hard-coded the dimensions for A4 paper, as that's what I use 99.999%
+of the time.
+
+Patches welcome to generalise this, but please keep the default as A4
+or do something with C<$PAPERSIZE> and/or C<paperconf>.
+
+=head2 Duplexing is still awkward
+
+I'm trying to come up with a *safe* way of automatically inferring sane
+defaults for the C<--batch> and C<--last-odd> parameters
+when using C<--even>.
+
+For now, you must carefully specify C<--batch> and C<--last-odd>.
+
+=head2 Batch numbers used up on failure
+
+If you start a batch, and it results in no files being produced,
+for example if you've not put anything on the ADF or you pressed
+Ctrl+D straight away or you passed an invalid arugment through to C<scanimage>,
+you will get a gap in your batch numbers.
+
+=head2 My Workflow, Not Yours
+
+You can build this into your own scripts, but don't rely on stability.
+
+If I change my workflow, this script's interface and implementation
+will change with it.
+
+I'm happy to accept patches to add options as long as they don't interfere
+with my own workflow and defaults.
+
+If my workflow is or becomes incompatible with yours, you're welcome to 
+fork your own version under the terms of the GPLv3 or later.
+
+=head2 No support for real duplexer
+
+My scanner doesn't have a duplexer, so I've not provided an option to use
+it (if it had I wouldn't need all that --odd and --even malarkey).
+
+=head1 AUTHOR
+
+Nicholas Booker C<< <nmb@nickbooker.uk> >>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2015, Nicholas Booker C<< <nmb@nickbooker.uk> >>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+=cut

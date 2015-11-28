@@ -107,7 +107,7 @@ my $increment = do {
     else { 1 }
 };
 
-my @batch_prompt = ($adf or ($noprompt and $numpages and $numpages eq 1)) ? () : qw/--batch-prompt/;
+my @batch_prompt = ($adf or ($noprompt and $numpages and $numpages == 1)) ? () : qw/--batch-prompt/;
 my @mode = $mode ? ('--mode', $mode) : ();
 
 sub opt_if_true {

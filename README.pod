@@ -1,0 +1,33 @@
+=head1 NAME
+
+lazyscan-scripts
+
+=head1 DESCRIPTION
+
+A collection of scripts that help my workflow when scanning documents for
+archival.
+
+I call it lazy because I aim to do as little up-front work organising
+the documents as possible without regretting it later.
+
+To this end, I try to get 2-sided scans right at scan time, but other than that
+they won't be much more organised than when they were a stack 
+of semi-organised to completely disorganised sheets of paper.
+
+I scan each page to a separate .pnm file in an 'inbox' directory,
+so I can organise the pages by document or topic at a later date.
+
+Written mostly in Perl so far.
+
+=head1 NOTES TO SELF
+
+I might find these useful for doing drag-and-drop document organisation tools:
+
+  http://perl.com/pub/2001/12/11/perltk.html
+  http://www.perlmonks.org/?node_id=269065
+
+=head1 LICENSE
+
+GPLv3 or later
+
+=cut

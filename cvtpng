@@ -1,0 +1,31 @@
+#!/usr/bin/perl
+
+use v5.10;
+use strict;
+use warnings;
+
+use File::Spec;
+use FindBin qw/$RealBin/;
+use lib File::Spec->catfile($RealBin, 'lib');
+
+use File::Basename;
+
+use LazyScan qw/scandir/;
+
+use autodie /:io/;
+
+my @files = grep { $_ !~ /\.png/ } @ARGV;
+
+my $root = scandir();
+
+my $converted_dir = File::Spec->catdir($root, 'converted');
+mkdir $converted_dir unless -d $converted_dir;
+
+foreach my $file (@files) {
+    my $origdest = File::Spec->catfile($converted_dir, basename($file));
+    my $newfile = ($file =~ s/\.[^.]+$/.png/r);
+    say STDERR "CONVERT $file  -->  $newfile";
+    system('convert', $file, $newfile) == 0  or next;
+    say STDERR "RENAME $file  ==> $origdest";
+    system 'mv', $file, $origdest;
+}

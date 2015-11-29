@@ -4,6 +4,10 @@ use v5.10;
 use strict;
 use warnings;
 use File::Spec;
+use FindBin qw/$RealBin/;
+use lib File::Spec->catfile($RealBin, 'lib');
+
+use LazyScan qw/scandir/;
 use Fcntl qw/:flock SEEK_SET/;
 use autodie qw/:io/;
 use Getopt::Long qw/:config gnu_getopt no_ignore_case/;
@@ -73,9 +77,6 @@ sub err {
     croak "$0: Error: ", @_;
 }
 
-sub scandir {
-    $ENV{SCANHOME} or File::Spec->catfile($ENV{HOME}, 'scan')
-}
 
 sub new_batchnum {
     my $nextbatch_path = File::Spec->catfile(scandir(), '.nextbatch');

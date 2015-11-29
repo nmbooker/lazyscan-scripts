@@ -26,8 +26,21 @@ I might find these useful for doing drag-and-drop document organisation tools:
   http://perl.com/pub/2001/12/11/perltk.html
   http://www.perlmonks.org/?node_id=269065
 
-=head1 LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-GPLv3 or later
+Copyright (C) 2015, Nicholas Booker C<< <nmb@nickbooker.uk> >>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 =cut

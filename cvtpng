@@ -12,9 +12,19 @@ use File::Basename;
 
 use LazyScan qw/scandir/;
 
-use autodie /:io/;
+use autodie qw/:io/;
+
+unless (@ARGV) {
+    say STDERR "No files listed on command line.  Exiting.";
+    exit 0;
+}
 
 my @files = grep { $_ !~ /\.png/ } @ARGV;
+
+unless (@files) {
+    say STDERR "No non-PNG files to work on.  Exiting.";
+    exit 0;
+}
 
 my $root = scandir();
 

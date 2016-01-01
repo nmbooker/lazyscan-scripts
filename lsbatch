@@ -13,7 +13,7 @@ use FindBin qw/$RealBin/;
 use lib File::Spec->catfile($RealBin, 'lib');
 
 use File::Glob qw/:bsd_glob/;
-use LazyScan qw/scandir/;
+use LazyScan qw/scandir listbatch/;
 
 use autodie qw/:io/;
 
@@ -24,16 +24,7 @@ s/-+/\.\./g foreach @ARGV;
 my @numbers = Number::Range->new(@ARGV)->range;
 
 foreach my $i (@numbers) {
-    my $pattern = File::Spec->catfile(
-        $basedir, sprintf('b*%d_p*.{png,pnm}', $i));
-    my @match = bsd_glob($pattern, GLOB_CSH);
-    say foreach @match;
-    # if (@match) {
-    #     say foreach @match;
-    # }
-    # else {
-    #     say STDERR "$0: WARNING: No matching files for batch $i";
-    # }
+    say foreach listbatch($basedir, $i);
 }
 
 =head1 NAME

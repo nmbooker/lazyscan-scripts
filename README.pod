@@ -19,6 +19,16 @@ so I can organise the pages by document or topic at a later date.
 
 Written mostly in Perl so far.
 
+=head1 DEPENDENCIES
+
+Debian commands for dependencies:
+
+    # apt-get install libgetopt-long-perl perl-doc libnumber-range-perl
+    # apt-get install parallel imagemagick
+
+There may be some more I forgot to list - if they trip you up
+please submit a pull request to add them.
+
 =head1 NOTES TO SELF
 
 I might find these useful for doing drag-and-drop document organisation tools:

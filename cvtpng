@@ -9,10 +9,24 @@ use FindBin qw/$RealBin/;
 use lib File::Spec->catfile($RealBin, 'lib');
 
 use File::Basename;
+use Getopt::Long qw/:config gnu_getopt no_ignore_case/;
+
 
 use LazyScan qw/scandir/;
 
 use autodie qw/:io/;
+
+my $help;
+my $verbose;
+GetOptions(
+    "help|h" => \$help,
+    "verbose|v" => \$verbose,
+   ) or die("$0: Error in command line arguments\n");
+
+if ($help) {
+    say "Usage: $0 [-v|-h] FILE [FILE...]";
+    exit;
+}
 
 unless (@ARGV) {
     say STDERR "No files listed on command line.  Exiting.";
@@ -34,8 +48,8 @@ mkdir $converted_dir unless -d $converted_dir;
 foreach my $file (@files) {
     my $origdest = File::Spec->catfile($converted_dir, basename($file));
     my $newfile = ($file =~ s/\.[^.]+$/.png/r);
-    say STDERR "CONVERT $file  -->  $newfile";
+    say STDERR "CONVERT $file  -->  $newfile" if $verbose;
     system('convert', $file, $newfile) == 0  or next;
-    say STDERR "RENAME $file  ==> $origdest";
+    say STDERR "RENAME $file  ==> $origdest" if $verbose;
     system 'mv', $file, $origdest;
 }

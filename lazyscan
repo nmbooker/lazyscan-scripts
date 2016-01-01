@@ -26,6 +26,7 @@ my $resolution = 200;   # A better default for what I'm doing than scanimage's o
 
 GetOptions(
     "help|h|man"=> \$help,
+    "one" => sub {$numpages = 1 ; $noprompt = 1},
     "pages=i" => \$numpages,
     "adf|A" => \$adf,
     "black|b" => \$black,
@@ -258,6 +259,10 @@ Specify the batch number to continue.  Usually used with C<--even> and C<--last-
 
 Take care with this option - it will overwrite files in the batch if they
 already exist.
+
+=item --one
+
+The same as C<--no-prompt --pages 1>
 
 =back
 

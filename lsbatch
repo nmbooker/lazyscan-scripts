@@ -2,6 +2,7 @@
 
 # apt-get install libnumber-range-perl
 
+
 use v5.10;
 use strict;
 use warnings;
@@ -34,3 +35,22 @@ foreach my $i (@numbers) {
     #     say STDERR "$0: WARNING: No matching files for batch $i";
     # }
 }
+
+=head1 NAME
+
+lsbatch - list the files in batches of scans
+
+=head1 EXAMPLES
+
+Varying the end batch number to find a CD's worth of contiguous batches.
+It so happened in the following example that including 81 made it too big
+for a CD-R.
+
+    $ ./scripts/lsbatch 49-80 | xargs wc -c | tail -n1
+    581585268 total
+
+I then sent them to Brasero to burn to CD:
+
+    $ ./scripts/lsbatch 49-80 | xargs brasero inbox/batch_index.txt
+
+=cut

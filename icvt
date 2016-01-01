@@ -4,4 +4,4 @@ shopt -s failglob
 
 MYDIR="$(dirname "$0")"
 
-"${MYDIR}/cvtpng" "${SCANDIR:=~/scan}"/inbox/*.pnm
+"${MYDIR}/cvtpng" "${SCANDIR:=$HOME/scan}"/inbox/*.pnm

@@ -18,8 +18,7 @@ sub listbatch {
     my ($basedir, $batchnum) = @_;
     my $pattern = File::Spec->catfile(
         $basedir, sprintf('b*%d_p*.{png,pnm}', $batchnum));
-    my @match = bsd_glob($pattern, GLOB_CSH);
-
+    return bsd_glob($pattern, GLOB_CSH);
 }
 
 1;

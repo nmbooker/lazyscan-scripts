@@ -1,0 +1,36 @@
+#!/usr/bin/env perl
+
+# apt-get install libnumber-range-perl
+
+use v5.10;
+use strict;
+use warnings;
+
+use Number::Range;
+
+use FindBin qw/$RealBin/;
+use lib File::Spec->catfile($RealBin, 'lib');
+
+use File::Glob qw/:bsd_glob/;
+use LazyScan qw/scandir/;
+
+use autodie qw/:io/;
+
+my $basedir = File::Spec->catfile(scandir(), 'inbox');
+
+s/-+/\.\./g foreach @ARGV;
+
+my @numbers = Number::Range->new(@ARGV)->range;
+
+foreach my $i (@numbers) {
+    my $pattern = File::Spec->catfile(
+        $basedir, sprintf('b*%d_p*.{png,pnm}', $i));
+    my @match = bsd_glob($pattern, GLOB_CSH);
+    say foreach @match;
+    # if (@match) {
+    #     say foreach @match;
+    # }
+    # else {
+    #     say STDERR "$0: WARNING: No matching files for batch $i";
+    # }
+}

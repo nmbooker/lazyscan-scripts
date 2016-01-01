@@ -273,6 +273,13 @@ if you wish, if you know what you're doing.
 
 =over 8
 
+=item --resolution <r> | -r <r>
+
+Set scan resolution to C<r> DPI.  Default: 200
+
+Must be a resolution supported by scanner.  Examples for mine are:
+100, 150, 200, 300, 600
+
 =item --mode <m>
 
 Specify C<< --mode <m> >> parameter to scanimage.

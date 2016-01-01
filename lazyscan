@@ -262,6 +262,8 @@ already exist.
 
 =item --one
 
+Scan a single page without prompting for it
+
 The same as C<--no-prompt --pages 1>
 
 =back

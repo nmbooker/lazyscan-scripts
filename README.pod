@@ -23,7 +23,7 @@ Written mostly in Perl so far.
 
 Debian commands for dependencies:
 
-    # apt-get install libgetopt-long-perl perl-doc libnumber-range-perl
+    # apt-get install libexporter-easy-perl perl-doc libnumber-range-perl
     # apt-get install parallel imagemagick
 
 There may be some more I forgot to list - if they trip you up

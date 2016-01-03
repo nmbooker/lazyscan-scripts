@@ -4,9 +4,11 @@ use strict;
 use warnings;
 use File::Spec;
 use File::Glob qw/:bsd_glob/;
+use Fcntl qw/:flock SEEK_SET/;
+
 
 use Exporter::Easy (
-    OK => [qw/scandir listbatch/],
+    OK => [qw/scandir listbatch new_batchnum/],
 );
 
 
@@ -17,8 +19,25 @@ sub scandir {
 sub listbatch {
     my ($basedir, $batchnum) = @_;
     my $pattern = File::Spec->catfile(
-        $basedir, sprintf('b*%d_p*.{png,pnm}', $batchnum));
+        $basedir, sprintf('b*%d_p*.{png,pnm,pdf}', $batchnum));
     return bsd_glob($pattern, GLOB_CSH);
 }
+
+sub new_batchnum {
+    use autodie qw/:io/;
+    my $nextbatch_path = File::Spec->catfile(scandir(), '.nextbatch');
+    open my $bf, '+>>', $nextbatch_path;
+    flock($bf, LOCK_EX);
+    seek($bf, 0, SEEK_SET);
+    my $nextnum = <$bf>;
+    chomp $nextnum;
+    $nextnum ||= 1;
+    seek($bf, 0, SEEK_SET);
+    truncate($bf, 0);
+    say $bf ($nextnum + 1);
+    flock($bf, LOCK_UN);
+    return $nextnum;
+}
+
 
 1;

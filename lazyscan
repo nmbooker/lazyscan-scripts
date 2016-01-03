@@ -7,8 +7,7 @@ use File::Spec;
 use FindBin qw/$RealBin/;
 use lib File::Spec->catfile($RealBin, 'lib');
 
-use LazyScan qw/scandir/;
-use Fcntl qw/:flock SEEK_SET/;
+use LazyScan qw/scandir new_batchnum/;
 use autodie qw/:io/;
 use Getopt::Long qw/:config gnu_getopt no_ignore_case/;
 use Carp qw/croak/;
@@ -76,22 +75,6 @@ sub even { $_[0] % 2 == 0 }
 
 sub err {
     croak "$0: Error: ", @_;
-}
-
-
-sub new_batchnum {
-    my $nextbatch_path = File::Spec->catfile(scandir(), '.nextbatch');
-    open my $bf, '+>>', $nextbatch_path;
-    flock($bf, LOCK_EX);
-    seek($bf, 0, SEEK_SET);
-    my $nextnum = <$bf>;
-    chomp $nextnum;
-    $nextnum ||= 1;
-    seek($bf, 0, SEEK_SET);
-    truncate($bf, 0);
-    say $bf ($nextnum + 1);
-    flock($bf, LOCK_UN);
-    return $nextnum;
 }
 
 sub batchfmt {

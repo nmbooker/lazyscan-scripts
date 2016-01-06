@@ -19,12 +19,20 @@ so I can organise the pages by document or topic at a later date.
 
 Written mostly in Perl so far.
 
+There's a GUI C<tklazyscan> who can pass the colour depth options
+and ADF.  However it doesn't yet provide the options required to do
+duplex ADF scanning, change resolutions etc.
+
 =head1 DEPENDENCIES
 
 Debian commands for dependencies:
 
     # apt-get install libexporter-easy-perl perl-doc libnumber-range-perl
     # apt-get install parallel imagemagick
+
+There's also a very primitive GUI for the most basic use cases, which needs:
+
+    # apt-get install uxterm perl-tk
 
 There may be some more I forgot to list - if they trip you up
 please submit a pull request to add them.

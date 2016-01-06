@@ -1,0 +1,12 @@
+#!/usr/bin/env perl
+
+use v5.20;
+use strict;
+use warnings;
+
+my $ret = system(@ARGV);
+
+say "Exit code: $ret" if $ret;
+say "Press Enter to quit";
+my $line = <STDIN>;
+exit $ret;

@@ -1,0 +1,51 @@
+#!/usr/bin/env perl
+
+use v5.20;
+use strict;
+use warnings;
+use Tk;
+
+use FindBin qw/$RealBin/;
+use File::Spec;
+
+my $mw = MainWindow->new();
+
+my $mode = '--grey';
+my $use_adf = 0;
+
+$mw->Label(-text => 'lazyscan')->pack;
+$mw->Radiobutton(
+    -text => $_, -value => $_,
+    -variable => \$mode,
+)->pack for qw/--black --grey --colour/;
+
+$mw->Checkbutton(
+    -text => 'Feeder (--adf)',
+    -variable => \$use_adf,
+)->pack;
+
+$mw->Button(
+    -text => 'Scan',
+    -command => sub { scan() },
+)->pack;
+$mw->Button(
+    -text => 'Quit',
+    -command => sub { exit },
+)->pack;
+
+
+MainLoop;
+
+sub scan {
+    my @cmd = (
+        qw(uxterm -e),
+        File::Spec->catfile($RealBin, 'runwait'),
+        File::Spec->catfile($RealBin, 'lazyscan'),
+        $mode);
+    push @cmd, '--adf' if $use_adf;
+    say "@cmd";
+    unless ($ENV{FAKE}) {
+        my $ret = system(@cmd);
+        say "Exit code: $ret";
+    }
+}

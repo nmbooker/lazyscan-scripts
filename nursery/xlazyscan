@@ -1,0 +1,30 @@
+#!/usr/bin/env perl
+
+use v5.10;
+use strict;
+use warnings;
+
+use File::Spec;
+use FindBin qw/$RealBin/;
+use lib File::Spec->catfile($RealBin, 'lib');
+use Getopt::Long qw/:config gnu_getopt no_ignore_case/;
+use Carp qw/croak/;
+
+use LazyScan qw/scandir new_batchnum batchfmt/;
+use autodie qw/:io/;
+
+my $batchnum;
+my $start = 1;
+my $out_format = 'png';
+
+GetOptions(
+    "batchnum|B|N=i" => \$batchnum,
+    "start=i" => \$start,
+) or die("$0: Error in command line arguments\n");
+
+$batchnum //= new_batchnum();
+
+my $filename = sprintf(batchfmt($batchnum, $out_format), $start);
+
+
+system(qw/xsane --save -N/, $filename);

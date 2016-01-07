@@ -8,7 +8,7 @@ use Fcntl qw/:flock SEEK_SET/;
 
 
 use Exporter::Easy (
-    OK => [qw/scandir listbatch new_batchnum/],
+    OK => [qw/scandir listbatch new_batchnum batchfmt/],
 );
 
 
@@ -39,5 +39,13 @@ sub new_batchnum {
     return $nextnum;
 }
 
+sub batchfmt {
+    my ($num, $format) = @_;
+    return File::Spec->catfile(
+        scandir(),
+        'inbox',
+        sprintf('b%05d_p%%03d.%s', $num, $format),
+    );
+}
 
 1;

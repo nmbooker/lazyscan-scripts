@@ -16,6 +16,7 @@ my $help;
 my $numpages;
 my $adf;
 my ($mode, $black, $grey, $colour);
+$mode = 'Gray';
 my $out_format = 'pnm';
 my $batchnum;
 my $start;
@@ -115,6 +116,7 @@ my @cmd = (
     '--batch-start', $start,
 );
 
+say STDERR "@cmd";
 my $ret = system @cmd;
 say "Batch number: $batchnum";
 exit $ret;

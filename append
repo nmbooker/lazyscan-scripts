@@ -1,0 +1,114 @@
+#! /usr/bin/env perl
+
+use v5.10;
+use warnings;
+use strict;
+
+use File::Spec;
+use FindBin qw/$RealBin/;
+use lib File::Spec->catfile($RealBin, 'lib');
+use LazyScan qw/scandir new_batchnum batchfmt file_batchnum parse_filename/;
+
+use autodie qw/:io/;
+use File::Glob qw/:bsd_glob/;
+use Data::Dumper;
+
+
+my $options = get_options();
+
+my @origfiles = bsd_glob(File::Spec->catfile($options->{sourcedir}, 'b*.{pnm,png,pdf,tif,tiff}'));
+
+my %groups;
+OLDFILE: foreach my $origfile (@origfiles) {
+    my $batch = file_batchnum($origfile);
+    unless ($batch) {
+        say STDERR "SKIP: Not part of batch: $origfile";
+        next OLDFILE;
+    }
+    $groups{$batch} //= [];
+    push @{$groups{$batch}}, $origfile;
+}
+
+my @origbatches = sort keys %groups;
+
+foreach my $batch (@origbatches) {
+    my @files = @{$groups{$batch}};
+    my $new_batch = new_batchnum();
+    foreach my $file (@files) {
+        my $info = parse_filename($file);
+        my $new_name_fmt = batchfmt($new_batch, $info->{stripped_suffix});
+        my $new_name = sprintf($new_name_fmt, $info->{page});
+        system 'cp', $file, $new_name;
+    }
+}
+
+sub get_options {
+    use File::Basename qw(basename);
+    use Getopt::Long qw/:config gnu_getopt no_ignore_case/;
+    use Pod::Usage;
+
+    my $prog = basename($0);  # can be used in error messages
+
+    my $options = {
+        help => 0,
+        man => 0,
+        # add further options here with their default values
+    };
+
+    Getopt::Long::Configure(qw{gnu_getopt});
+    my $parsed_ok = GetOptions(
+        'h|help'    =>  \$options->{help},
+        'man'       =>  \$options->{man},
+        # specify further options here with references to their values in the $options hashref
+    );
+
+    pod2usage(-exitval => 2) unless $parsed_ok;
+
+    # Note -output defaults to *STDOUT if -exitval is 0 or 1.
+    # See the documentation for Pod::Usage under DESCRIPTION.
+    pod2usage(-exitval => 1, -verbose => 1) if $options->{help};
+    pod2usage(-exitval => 1, -verbose => 2) if $options->{man};
+
+    # Process remaining arguments from @ARGV here, adding results
+    # to $options.
+
+    ($options->{sourcedir}) = @ARGV or pod2usage(-exitval => 2);
+
+    return $options;
+}
+
+__END__
+
+=head1 NAME
+
+append - append batches from another inbox into your inbox
+
+=head1 SYNOPSIS
+
+append [options] SOURCE_DIRECTORY
+
+ Options:
+    -h, --help              brief help message
+    --man                   full documentation
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--help> or B<-h>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the manual page and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+B<append> will pull in the batches from the given C<SOURCE_DIRECTORY>,
+renumbering the batches to start from the next batch number, as if the
+batches were scanned into the inbox directly.
+
+=cut

@@ -5,10 +5,18 @@ use warnings;
 use File::Spec;
 use File::Glob qw/:bsd_glob/;
 use Fcntl qw/:flock SEEK_SET/;
+use File::Basename;
 
 
 use Exporter::Easy (
-    OK => [qw/scandir listbatch new_batchnum batchfmt/],
+    OK => [qw/
+        scandir
+        listbatch
+        new_batchnum
+        batchfmt
+        file_batchnum
+        parse_filename
+    /],
 );
 
 
@@ -46,6 +54,32 @@ sub batchfmt {
         'inbox',
         sprintf('b%05d_p%%03d.%s', $num, $format),
     );
+}
+
+sub file_batchnum {
+    my ($filename) = @_;
+    return parse_filename($filename)->{batch};
+}
+
+sub parse_filename {
+    my ($filename) = @_;
+    my ($name, $path, $suffix) = fileparse($filename, qr/((\.[^.\s]+)+)$/);
+    my ($batch, $page);
+    if ($name =~ /^b0*([1-9][0-9]*)/) {
+        $batch= $1;
+    }
+    if ($name =~ /p0*([1-9][0-9]*)$/) {
+        $page= $1;
+    }
+    return {
+        wholename => basename($filename),
+        name => $name,
+        path => $path,
+        suffix => $suffix,
+        stripped_suffix => $suffix =~ s/^\.*//r,
+        batch => $batch,
+        page => $page,
+    }
 }
 
 1;

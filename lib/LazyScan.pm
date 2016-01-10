@@ -1,11 +1,14 @@
 package LazyScan;
 
+# libscalar-list-utils-perl liblist-moreutils-perl
+
 use strict;
 use warnings;
 use File::Spec;
 use File::Glob qw/:bsd_glob/;
 use Fcntl qw/:flock SEEK_SET/;
 use File::Basename;
+use List::MoreUtils qw/uniq/;
 
 
 use Exporter::Easy (
@@ -16,6 +19,7 @@ use Exporter::Easy (
         batchfmt
         file_batchnum
         parse_filename
+        batches
     /],
 );
 
@@ -29,6 +33,25 @@ sub listbatch {
     my $pattern = File::Spec->catfile(
         $basedir, sprintf('b*%d_p*.{png,pnm,pdf}', $batchnum));
     return bsd_glob($pattern, GLOB_CSH);
+}
+
+sub imgfiles {
+    my ($basedir) = @_;
+    my $pattern = File::Spec->catfile($basedir, 'b*.{png,pnm,pdf}');
+    return bsd_glob($pattern, GLOB_CSH);
+}
+
+sub batches {
+    my ($basedir) = @_;
+    my @img = imgfiles($basedir);
+    my @batches;
+    for (@img) {
+        $_ = basename($_);
+        if (/b0*([1-9][0-9]*)(_p[0-9]*)\.*[^\/]*$/) {
+            push @batches => $1;
+        }
+    }
+    return uniq sort { $a <=> $b } @batches;
 }
 
 sub new_batchnum {

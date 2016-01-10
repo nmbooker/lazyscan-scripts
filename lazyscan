@@ -16,7 +16,6 @@ my $help;
 my $numpages;
 my $adf;
 my ($mode, $black, $grey, $colour);
-$mode = 'Gray';
 my $out_format = 'pnm';
 my $batchnum;
 my $start;
@@ -54,6 +53,7 @@ err("--mode, --black, -b, --grey, -g, --colour and -c are mutually exclusive")
 $mode = 'Lineart' if $black;
 $mode = 'Gray' if $grey;
 $mode = 'Color' if $colour;
+$mode //= 'Gray';   # default if none selected by other means
 
 err("--even and --odd are mutually exclusive") if $even and $odd;
 err("--start and --last-odd are mutually exclusive") if $start and $last_odd;

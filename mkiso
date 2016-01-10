@@ -17,9 +17,14 @@ LABEL="paper-archive-b${RANGE}"
 CATALOGUE="${ISOS}/${LABEL}.list"
 ISONAME="${LABEL}.iso"
 
-"$SCRIPTDIR/lsbatch" "$RANGE" | while read batch ; do
-    echo "$(basename "$batch")=${batch}"
-done > "$CATALOGUE"
+function generate-catalogue() {
+    "$SCRIPTDIR/lsbatch" "$RANGE" | while read batch ; do
+        echo "$(basename "$batch")=${batch}"
+    done
+    echo "batch_index.txt=$INBOX/batch_index.txt"
+}
+
+generate-catalogue > "$CATALOGUE"
 
 genisoimage -V "$LABEL" -J -r -o "${ISOS}/${ISONAME}" -graft-points -path-list "$CATALOGUE"
 cd "$ISOS"

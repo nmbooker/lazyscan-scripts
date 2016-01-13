@@ -1,0 +1,108 @@
+#! /usr/bin/env perl
+
+# Build ISO files starting at given batch
+
+use v5.10;
+use warnings;
+use strict;
+use FindBin qw/$RealBin/;
+use lib File::Spec->catfile($RealBin, '../lib');
+use LazyScan qw/scandir chunk_batches batch_size/;
+use List::Util qw/min max sum/;
+
+my $options = get_options();
+
+my $mkiso = File::Spec->catfile($RealBin, 'mkiso');
+
+my $last_minsize = 450e6;
+my $maxsize = 650e6;
+my $inbox = File::Spec->catfile(scandir(), 'inbox');
+
+my @chunks = chunk_batches($inbox, $maxsize, $options->{start});
+
+exit unless @chunks;
+
+if (sum(map { batch_size($inbox, $_) } @{$chunks[-1]}) <= $last_minsize) {
+    pop @chunks;
+}
+
+exit unless @chunks;
+
+build_iso($_) foreach @chunks;
+
+sub build_iso {
+    my ($chunk) = @_;
+    my $start = min @$chunk;
+    my $end = max @$chunk;
+    my @cmd = ($mkiso, "$start-$end");
+    say "@cmd";
+}
+
+sub get_options {
+    use File::Basename qw(basename);
+    use Getopt::Long;
+    use Pod::Usage;
+
+    my $prog = basename($0);  # can be used in error messages
+
+    my $options = {
+        help => 0,
+        man => 0,
+        start => undef,
+        # add further options here with their default values
+    };
+
+    Getopt::Long::Configure(qw{gnu_getopt});
+    my $parsed_ok = GetOptions(
+        'h|help'    =>  \$options->{help},
+        'man'       =>  \$options->{man},
+        # specify further options here with references to their values in the $options hashref
+        'start|s'   =>  \$options->{start},
+    );
+
+    pod2usage(-exitval => 2) unless $parsed_ok;
+
+    # Note -output defaults to *STDOUT if -exitval is 0 or 1.
+    # See the documentation for Pod::Usage under DESCRIPTION.
+    pod2usage(-exitval => 1, -verbose => 1) if $options->{help};
+    pod2usage(-exitval => 1, -verbose => 2) if $options->{man};
+
+    pod2usage(-exitval => 2) unless $options->{start} and $options->{start} >= 1;
+
+    return $options;
+}
+
+__END__
+
+=head1 NAME
+
+build_isos - BRIEF_DESCRIPTION
+
+=head1 SYNOPSIS
+
+build_isos [options]
+
+ Options:
+    -h, --help              brief help message
+    --man                   full documentation
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--help> or B<-h>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the manual page and exit.
+
+
+=back
+
+=head1 DESCRIPTION
+
+B<build_isos> will ...
+
+=cut

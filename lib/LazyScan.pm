@@ -9,6 +9,7 @@ use File::Glob qw/:bsd_glob/;
 use Fcntl qw/:flock SEEK_SET/;
 use File::Basename;
 use List::MoreUtils qw/uniq/;
+use List::Util qw/sum/;
 
 
 use Exporter::Easy (
@@ -20,9 +21,45 @@ use Exporter::Easy (
         file_batchnum
         parse_filename
         batches
+        batch_size
+        chunk_batches
     /],
 );
 
+sub file_size {
+    my @stat = stat(shift);
+    return $stat[7]    # the size is element 7
+}
+
+sub files_size { sum map { file_size($_) } @_ }
+
+sub batch_size {
+    my ($basedir, $batchnum) = @_;
+    sum map { file_size($_) } listbatch($basedir, $batchnum)
+}
+
+sub split_with {
+    # Based on MITHALDU's Array::Split::split_by (c) 2010 Christian Walde under DWTFYW public license v2
+    my ($original, $chunk_invariant) = @_;
+
+    # not hugely efficient, but doesn't need to be to save time vs doing it manually
+    my @sub_arrays;
+    for my $element ( @$original ) {
+        push @sub_arrays, [] if !@sub_arrays;
+        push @sub_arrays, [] unless $chunk_invariant->([@{$sub_arrays[-1]}, $element]);
+        push @{ $sub_arrays[-1] }, $element;
+    }
+    return @sub_arrays;
+}
+
+sub chunk_batches {
+    my ($basedir, $max_size, $start_batch) = @_;
+    my @batches = grep { $_ >= $start_batch } batches($basedir);
+    return split_with(\@batches => sub {
+        my $chunk = shift;
+        sum(map { batch_size($basedir, $_) } @$chunk) <= $max_size
+    });
+}
 
 sub scandir {
     $ENV{SCANHOME} or File::Spec->catfile($ENV{HOME}, 'scan')
@@ -31,7 +68,7 @@ sub scandir {
 sub listbatch {
     my ($basedir, $batchnum) = @_;
     my $pattern = File::Spec->catfile(
-        $basedir, sprintf('b*%d_p*.{png,pnm,pdf}', $batchnum));
+        $basedir, sprintf('b%05d_p*.*', $batchnum));
     return bsd_glob($pattern, GLOB_CSH);
 }
 

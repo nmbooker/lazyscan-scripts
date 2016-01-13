@@ -57,7 +57,7 @@ sub get_options {
         'h|help'    =>  \$options->{help},
         'man'       =>  \$options->{man},
         # specify further options here with references to their values in the $options hashref
-        'start|s'   =>  \$options->{start},
+        'start|s=i'   =>  \$options->{start},
     );
 
     pod2usage(-exitval => 2) unless $parsed_ok;

@@ -1,0 +1,112 @@
+#! /usr/bin/env perl
+
+# Import files into a batch
+# They're imported as individual pages into the batch.
+
+use v5.20;
+use warnings;
+use strict;
+use feature 'signatures'; no warnings 'experimental::signatures';
+
+use autodie;
+use File::Spec;
+use FindBin qw/$RealBin/;
+use lib File::Spec->catfile($RealBin, 'lib');
+use LazyScan qw/scandir new_batchnum batchfmt parse_filename/;
+my $prog = basename($0);  # can be used in error messages
+
+my $options = get_options();
+
+my @infiles = @ARGV;
+unless (@infiles) {
+    say STDERR "$prog: WARNING: no files provided on command line, exiting";
+    exit;
+}
+
+my $page = 0;
+my $batchnum = new_batchnum();
+say STDERR "$prog: Batch number: $batchnum";
+for (@infiles) {
+    $page++;
+    import_page($batchnum, $page, $_);
+}
+say STDERR "$prog: Pages: $page";
+
+sub import_page($batch, $page, $sourcefile) {
+    my $bits = parse_filename($sourcefile);
+    my $suffix = $bits->{stripped_suffix};
+    my $new_name = sprintf(batchfmt($batch, $suffix), $page);
+    if (-d $new_name) {
+        say STDERR "$prog: Skipping page $page: $new_name is a directory";
+        return;
+    }
+    system 'mv', $sourcefile, $new_name;
+    return 1;
+}
+
+sub get_options {
+    use File::Basename qw(basename);
+    use Getopt::Long;
+    use Pod::Usage;
+
+
+    my $options = {
+        help => 0,
+        man => 0,
+        # add further options here with their default values
+    };
+
+    Getopt::Long::Configure(qw{gnu_getopt});
+    my $parsed_ok = GetOptions(
+        'h|help'    =>  \$options->{help},
+        'man'       =>  \$options->{man},
+        # specify further options here with references to their values in the $options hashref
+    );
+
+    pod2usage(-exitval => 2) unless $parsed_ok;
+
+    # Note -output defaults to *STDOUT if -exitval is 0 or 1.
+    # See the documentation for Pod::Usage under DESCRIPTION.
+    pod2usage(-exitval => 1, -verbose => 1) if $options->{help};
+    pod2usage(-exitval => 1, -verbose => 2) if $options->{man};
+
+    # Process remaining arguments from @ARGV here, adding results
+    # to $options.
+
+    return $options;
+}
+
+__END__
+
+=head1 NAME
+
+import - BRIEF_DESCRIPTION
+
+=head1 SYNOPSIS
+
+import [options]
+
+ Options:
+    -h, --help              brief help message
+    --man                   full documentation
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--help> or B<-h>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the manual page and exit.
+
+
+=back
+
+=head1 DESCRIPTION
+
+B<import> will ...
+
+=cut

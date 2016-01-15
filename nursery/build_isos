@@ -1,6 +1,6 @@
 #! /usr/bin/env perl
 
-# Build ISO files starting at given batch
+# Build ISO files starting last ISO file
 
 use v5.10;
 use warnings;
@@ -9,16 +9,25 @@ use FindBin qw/$RealBin/;
 use lib File::Spec->catfile($RealBin, '../lib');
 use LazyScan qw/scandir chunk_batches batch_size/;
 use List::Util qw/min max sum/;
+use autodie;
+use File::Slurp qw/read_file write_file/;
 
 my $options = get_options();
+warn "Not yet cron-safe - need to use locks";
 
-my $mkiso = File::Spec->catfile($RealBin, 'mkiso');
+my $mkiso = File::Spec->catfile($RealBin, '..', 'mkiso');
 
-my $last_minsize = 450e6;
+my $last_minsize = 550e6;
 my $maxsize = 650e6;
-my $inbox = File::Spec->catfile(scandir(), 'inbox');
+my $scandir = scandir();
+my $inbox = File::Spec->catfile($scandir, 'inbox');
+my $last_iso_path = File::Spec->catfile($scandir, '.last-iso-batch');
+my $start = $options->{start} // do {
+    my @lines = read_file($last_iso_path, { chomp => 1 });
+    $lines[0] + 1
+};
 
-my @chunks = chunk_batches($inbox, $maxsize, $options->{start});
+my @chunks = chunk_batches($inbox, $maxsize, $start);
 
 exit unless @chunks;
 
@@ -34,8 +43,14 @@ sub build_iso {
     my ($chunk) = @_;
     my $start = min @$chunk;
     my $end = max @$chunk;
-    my @cmd = ($mkiso, "$start-$end");
-    say "@cmd";
+    my $range = "$start-$end";
+    my @cmd = ($mkiso, $range);
+    say STDERR "@cmd" if $options->{debug};
+    my $ret = system(@cmd);
+    if ($ret != 0) {
+        die "@cmd failed with exit status $ret\nSkipping remaining chunks\n";
+    }
+    write_file($last_iso_path, { atomic => 1 }, "$end\n") unless $options->{start};
 }
 
 sub get_options {
@@ -56,7 +71,6 @@ sub get_options {
     my $parsed_ok = GetOptions(
         'h|help'    =>  \$options->{help},
         'man'       =>  \$options->{man},
-        # specify further options here with references to their values in the $options hashref
         'start|s=i'   =>  \$options->{start},
     );
 
@@ -67,7 +81,9 @@ sub get_options {
     pod2usage(-exitval => 1, -verbose => 1) if $options->{help};
     pod2usage(-exitval => 1, -verbose => 2) if $options->{man};
 
-    pod2usage(-exitval => 2) unless $options->{start} and $options->{start} >= 1;
+    if (defined $options->{start}) {
+        pod2usage(-exitval => 2) unless $options->{start} >= 1;
+    }
 
     return $options;
 }

@@ -64,14 +64,15 @@ sub get_options {
         help => 0,
         man => 0,
         start => undef,
-        # add further options here with their default values
+        debug => undef,
     };
 
     Getopt::Long::Configure(qw{gnu_getopt});
     my $parsed_ok = GetOptions(
         'h|help'    =>  \$options->{help},
         'man'       =>  \$options->{man},
-        'start|s=i'   =>  \$options->{start},
+        'start|s=i' =>  \$options->{start},
+        'debug'     =>  \$options->{debug},
     );
 
     pod2usage(-exitval => 2) unless $parsed_ok;

@@ -19,9 +19,11 @@ my $scanhome = scanhome();
 my $inbox = catfile($scanhome, 'inbox');
 
 my $options = get_options();
-my $last_minsize = 550e6;
-my $maxsize = 650e6;
 my $last_iso_path = catfile($scanhome, '.last-iso-batch');
+
+# Approximate sizing for CD, allowing for overhead
+my $maxsize = 650e6;
+my $last_minsize = 550e6;
 
 with_dir_locked(
     dir => $scanhome,

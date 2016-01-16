@@ -46,7 +46,7 @@ I might find these useful for doing drag-and-drop document organisation tools:
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2015, Nicholas Booker C<< <nmb@nickbooker.uk> >>
+Copyright (C) 2016, Nicholas Booker C<< <nmb@nickbooker.uk> >>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

@@ -6,7 +6,9 @@ use warnings;
 use Tk;
 
 use FindBin qw/$RealBin/;
-use File::Spec;
+use File::Spec::Functions qw/catfile/;
+use lib catfile($RealBin, 'lib');
+use LazyScan qw/scanhome/;
 
 my $mw = MainWindow->new();
 
@@ -38,6 +40,10 @@ while (my $value = shift(@sources)) {
 $mw->Button(
     -text => 'Scan',
     -command => sub { scan() },
+)->pack;
+$mw->Button(
+    -text => 'View Inbox in File Manager',
+    -command => sub { system 'nemo', catfile(scanhome(), 'inbox') }
 )->pack;
 $mw->Button(
     -text => 'Quit',

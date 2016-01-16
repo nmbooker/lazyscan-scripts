@@ -16,9 +16,9 @@ my $mode = '--grey';
 my $source = 'flatbed';
 my @sources = (
     flatbed => 'Flatbed',
-    adf => 'Feeder Simplex',
-    adf_odd => 'Feeder Duplex Odd',
-    adf_even => 'Feeder Duplex Even',
+    adf => 'Feeder One Sided',
+    adf_odd => 'Feeder 2-side Odd',
+    adf_even => 'Feeder 2-side Even',
 );
 
 $mw->Label(-text => 'lazyscan')->pack;

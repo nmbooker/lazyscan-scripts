@@ -1,7 +1,0 @@
-#!/bin/bash
-
-shopt -s failglob
-
-MYDIR="$(dirname "$0")"
-
-ls -1 "${SCANDIR:=$HOME/scan}"/inbox/*.pnm | parallel -j2 "${MYDIR}/cvtpng" 

@@ -16,7 +16,7 @@ my $help;
 my $numpages;
 my $adf;
 my ($mode, $black, $grey, $colour);
-my $out_format = 'pnm';
+my $out_format = 'png';
 my $batchnum;
 my $start;
 my $noprompt;
@@ -264,7 +264,9 @@ Specify C<< --mode <m> >> parameter to scanimage.
 
 =item --format <f>
 
-Specify --format <m> parameter to scanimage
+Specify alternative --format <m> parameter to scanimage.
+
+Default is to specify 'png'
 
 =item --start <n>
 

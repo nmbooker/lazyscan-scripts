@@ -13,12 +13,12 @@ use FindBin qw/$RealBin/;
 use lib File::Spec->catfile($RealBin, 'lib');
 
 use File::Glob qw/:bsd_glob/;
-use LazyScan qw/scandir listbatch batches/;
+use LazyScan qw/scanhome listbatch batches/;
 use List::Util qw/max/;
 
 use autodie qw/:io/;
 
-my $basedir = File::Spec->catfile(scandir(), 'inbox');
+my $basedir = File::Spec->catfile(scanhome(), 'inbox');
 
 my $lastbatch = max batches($basedir);
 foreach (@ARGV) {

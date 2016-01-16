@@ -7,7 +7,7 @@ use warnings;
 use strict;
 use FindBin qw/$RealBin/;
 use lib File::Spec->catfile($RealBin, '../lib');
-use LazyScan qw/scandir chunk_batches batch_size/;
+use LazyScan qw/scanhome chunk_batches batch_size/;
 use List::Util qw/min max sum/;
 use autodie;
 use File::Slurp qw/read_file write_file/;
@@ -19,9 +19,9 @@ my $mkiso = File::Spec->catfile($RealBin, '..', 'mkiso');
 
 my $last_minsize = 550e6;
 my $maxsize = 650e6;
-my $scandir = scandir();
-my $inbox = File::Spec->catfile($scandir, 'inbox');
-my $last_iso_path = File::Spec->catfile($scandir, '.last-iso-batch');
+my $scanhome = scanhome();
+my $inbox = File::Spec->catfile($scanhome, 'inbox');
+my $last_iso_path = File::Spec->catfile($scanhome, '.last-iso-batch');
 my $start = $options->{start} // do {
     my @lines = read_file($last_iso_path, { chomp => 1 });
     $lines[0] + 1

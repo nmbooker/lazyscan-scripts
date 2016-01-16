@@ -8,32 +8,32 @@ use warnings;
 use FindBin qw/$RealBin/;
 use lib File::Spec->catfile($RealBin, 'lib');
 
-use LazyScan qw/scandir/;
+use LazyScan qw/scanhome/;
 
-say File::Spec->catfile(scandir(), @ARGV);
+say File::Spec->catfile(scanhome(), @ARGV);
 
 =head1 NAME
 
-scandir - print the scan base directory to STDOUT
+scanhome - print the scan base directory to STDOUT
 
 =head1 USAGE
 
-    scandir [PATHS ...]
+    scanhome [PATHS ...]
 
 =head1 DESCRIPTION
 
-Exposes L<LazyScan::scandir> function as a shell command.
+Exposes L<LazyScan::scanhome> function as a shell command.
 As a bonus, uses File::Spec to join further PATHS specified as args onto the end.
 
 =head1 EXAMPLES
 
-    $ scandir
+    $ scanhome
     /home/user/scan
 
-    $ scandir inbox
+    $ scanhome inbox
     /home/user/scan/inbox
 
-    $ SCANHOME=/foo scandir inbox
+    $ SCANHOME=/foo scanhome inbox
     /foo/inbox
 
 =cut

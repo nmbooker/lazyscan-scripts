@@ -12,7 +12,7 @@ use autodie;
 use File::Spec;
 use FindBin qw/$RealBin/;
 use lib File::Spec->catfile($RealBin, 'lib');
-use LazyScan qw/scandir new_batchnum batchfmt parse_filename/;
+use LazyScan qw/scanhome new_batchnum batchfmt parse_filename/;
 my $prog = basename($0);  # can be used in error messages
 
 my $options = get_options();

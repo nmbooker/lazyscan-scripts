@@ -12,7 +12,7 @@ use File::Basename;
 use Getopt::Long qw/:config gnu_getopt no_ignore_case/;
 
 
-use LazyScan qw/scandir/;
+use LazyScan qw/scanhome/;
 
 use autodie qw/:io/;
 
@@ -40,7 +40,7 @@ unless (@files) {
     exit 0;
 }
 
-my $root = scandir();
+my $root = scanhome();
 
 my $converted_dir = File::Spec->catdir($root, 'converted');
 mkdir $converted_dir unless -d $converted_dir;

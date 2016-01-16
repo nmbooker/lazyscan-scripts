@@ -14,7 +14,7 @@ use List::Util qw/sum/;
 
 use Exporter::Easy (
     OK => [qw/
-        scandir
+        scanhome
         listbatch
         new_batchnum
         batchfmt
@@ -61,7 +61,7 @@ sub chunk_batches {
     });
 }
 
-sub scandir {
+sub scanhome {
     $ENV{SCANHOME} or File::Spec->catfile($ENV{HOME}, 'scan')
 }
 
@@ -93,7 +93,7 @@ sub batches {
 
 sub new_batchnum {
     use autodie qw/:io/;
-    my $nextbatch_path = File::Spec->catfile(scandir(), '.nextbatch');
+    my $nextbatch_path = File::Spec->catfile(scanhome(), '.nextbatch');
     open my $bf, '+>>', $nextbatch_path;
     flock($bf, LOCK_EX);
     seek($bf, 0, SEEK_SET);
@@ -110,7 +110,7 @@ sub new_batchnum {
 sub batchfmt {
     my ($num, $format) = @_;
     return File::Spec->catfile(
-        scandir(),
+        scanhome(),
         'inbox',
         sprintf('b%05d_p%%03d.%s', $num, $format),
     );

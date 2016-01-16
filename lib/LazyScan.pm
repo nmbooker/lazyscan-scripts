@@ -74,7 +74,7 @@ sub listbatch {
 
 sub imgfiles {
     my ($basedir) = @_;
-    my $pattern = File::Spec->catfile($basedir, 'b*.{png,pnm,pdf}');
+    my $pattern = File::Spec->catfile($basedir, 'b*.{tif,tiff,png,pnm,pdf}');
     return bsd_glob($pattern, GLOB_CSH);
 }
 

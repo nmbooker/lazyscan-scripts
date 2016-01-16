@@ -199,23 +199,16 @@ the even side.
 
 =head2 Scanning from ADF (duplex)
 
-
 First load on your pages odds-up, page one on top.
 
     $ lazyscan --adf --odd
     $ lazyscan -A -O      # (short options)
 
-At the end, the script will tell you the batch number.
-You should make a note of this and the page number of the last odd page
-scanned.
-
-Lets assume your batch number was 3 and the last odd page scanned was 39.
-
 Turn over the stack of pages so that the last even page faces up.
 Don't try to do anything clever by removing blanks!
 
-    $ lazyscan --adf --even --batchnum=3 --last-odd=39
-    $ lazyscan -A -E -L 39 -N 3     # (short options)
+    $ lazyscan --adf --even
+    $ lazyscan -A -E      # (short options)
 
 =head1 OPTIONS
 
@@ -252,17 +245,6 @@ Scan odd pages on duplex scan.
 
 Scan even pages on duplex scan.
 
-=item --last-odd <n> | -L <n>
-
-Specify last odd page number.  Use with C<--even>.
-
-=item --batchnum <n> | -N <n>
-
-Specify the batch number to continue.  Usually used with C<--even> and C<--last-odd>.
-
-Take care with this option - it will overwrite files in the batch if they
-already exist.
-
 =item --one
 
 Scan a single page without prompting for it
@@ -277,6 +259,17 @@ You can override the defaults and inferred values from the Basic options
 if you wish, if you know what you're doing.
 
 =over 8
+
+=item --last-odd <n> | -L <n>
+
+Specify last odd page number.  Use with C<--even> and WITH CARE if monkey-patching existing batches etc.
+
+Take care with this option - it will overwrite files in the batch if they
+already exist and disable all checks for whether even-numbered files exist in the batch.
+
+=item --batchnum <n> | -N <n>
+
+Specify the batch number to continue.  Usually used WITH CARE with C<--even> and C<--last-odd>.
 
 =item --resolution <r> | -r <r>
 
@@ -298,6 +291,9 @@ Default is to specify 'png'
 =item --start <n>
 
 Start numbering pages at <n>
+
+This disables all sanity checks on existence of pages, so it will overwrite pages
+if they already exist.
 
 =item --pages <n>
 

@@ -377,14 +377,6 @@ of the time.
 Patches welcome to generalise this, but please keep the default as A4
 or do something with C<$PAPERSIZE> and/or C<paperconf>.
 
-=head2 Duplexing is still awkward
-
-I'm trying to come up with a *safe* way of automatically inferring sane
-defaults for the C<--batchnum> and C<--last-odd> parameters
-when using C<--even>.
-
-For now, you must carefully specify C<--batchnum> and C<--last-odd>.
-
 =head2 Batch numbers used up on failure
 
 If you start a batch, and it results in no files being produced,

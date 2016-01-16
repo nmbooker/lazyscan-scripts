@@ -8,9 +8,11 @@ use FindBin qw/$RealBin/;
 use lib catfile($RealBin, 'lib');
 
 use LazyScan qw/scanhome new_batchnum batchfmt listbatch pages lastbatch/;
+use LockFile::Simple;
 use autodie qw/:io/;
 use Getopt::Long qw/:config gnu_getopt no_ignore_case/;
 use List::Util qw/any max/;
+
 
 my $help;
 my $numpages;
@@ -86,7 +88,8 @@ sub is_even { $_[0] % 2 == 0 }
 sub is_odd { $_[0] % 2 == 1 }
 
 sub err {
-    die "$0: Error: \n", @_;
+    my $msg = shift;
+    die "$0: Error: $msg\n";
 }
 
 sub errf {
@@ -94,6 +97,18 @@ sub errf {
     die sprintf("$0: Error: $fmt\n", @args);
 }
 
+my $lockmgr = LockFile::Simple->make(-autoclean => 1, -warn => 1);
+my $lock;
+for (catfile($scanhome, '.dir')) {
+    unless ($lock = $lockmgr->trylock($_)) {
+        if ($!) {
+            err("Cannot lock $_ : $!");
+        }
+        else {
+            err("Cannot lock $_ : already in use?");
+        }
+    }
+}
 $batchnum ||= new_batchnum();
 
 
@@ -143,6 +158,7 @@ my @cmd = (
 say STDERR "@cmd";
 my $ret = system @cmd;
 say "Batch number: $batchnum";
+$lock->release if $lock;
 exit $ret;
 
 

@@ -9,7 +9,7 @@ use File::Glob qw/:bsd_glob/;
 use Fcntl qw/:flock SEEK_SET/;
 use File::Basename;
 use List::MoreUtils qw/uniq/;
-use List::Util qw/sum/;
+use List::Util qw/sum max/;
 
 
 use Exporter::Easy (
@@ -23,6 +23,8 @@ use Exporter::Easy (
         batches
         batch_size
         chunk_batches
+        lastbatch
+        pages
     /],
 );
 
@@ -78,6 +80,18 @@ sub imgfiles {
     return bsd_glob($pattern, GLOB_CSH);
 }
 
+sub pages {
+    my @files = @_;
+    my @pages;
+    for (@files) {
+        my $base = basename($_);
+        if ($base =~ /_p(\d+)\./) {
+            push @pages, $1;
+        }
+    }
+    return @pages;
+}
+
 sub batches {
     my ($basedir) = @_;
     my @img = imgfiles($basedir);
@@ -105,6 +119,11 @@ sub new_batchnum {
     say $bf ($nextnum + 1);
     flock($bf, LOCK_UN);
     return $nextnum;
+}
+
+sub lastbatch {
+    my ($basedir) = @_;
+    return max batches($basedir);
 }
 
 sub batchfmt {

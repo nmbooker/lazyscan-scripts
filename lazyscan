@@ -3,14 +3,14 @@
 use v5.10;
 use strict;
 use warnings;
-use File::Spec;
+use File::Spec::Functions qw/catfile/;
 use FindBin qw/$RealBin/;
-use lib File::Spec->catfile($RealBin, 'lib');
+use lib catfile($RealBin, 'lib');
 
-use LazyScan qw/scanhome new_batchnum batchfmt/;
+use LazyScan qw/scanhome new_batchnum batchfmt listbatch pages lastbatch/;
 use autodie qw/:io/;
 use Getopt::Long qw/:config gnu_getopt no_ignore_case/;
-use Carp qw/croak/;
+use List::Util qw/any max/;
 
 my $help;
 my $numpages;
@@ -58,11 +58,22 @@ $mode //= 'Gray';   # default if none selected by other means
 err("--even and --odd are mutually exclusive") if $even and $odd;
 err("--start and --last-odd are mutually exclusive") if $start and $last_odd;
 
-if ($even and not ($last_odd or $start)) {
-    err("--even specified without --last-odd or --start");
+my $scanhome = scanhome();
+my $inbox = catfile($scanhome, 'inbox');
+
+if ($even) {
+    $batchnum //= lastbatch($inbox);
+    my @pages = pages(listbatch($inbox, $batchnum));
+    errf('Batch %s has no odd pages', $batchnum) unless (any { is_odd($_) } @pages);
+    unless ($start or $last_odd) {
+        if (any { is_even($_) } @pages) {
+            errf('Batch %s has even pages.  To continue specify --start or --last-odd', $batchnum);
+        }
+        $last_odd //= max(grep { is_odd($_) } @pages) unless $start;
+    }
 }
 
-err("--last-odd argument is even") if defined($last_odd) and even($last_odd);
+err("--last-odd argument is even") if defined($last_odd) and is_even($last_odd);
 
 sub mutex {
     my $count = 0;
@@ -72,19 +83,35 @@ sub mutex {
     return $count <= 1;
 }
 
-sub even { $_[0] % 2 == 0 }
+sub is_even { $_[0] % 2 == 0 }
+sub is_odd { $_[0] % 2 == 1 }
 
 sub err {
-    croak "$0: Error: ", @_;
+    die "$0: Error: \n", @_;
+}
+
+sub errf {
+    my ($fmt, @args) = @_;
+    die sprintf("$0: Error: $fmt\n", @args);
 }
 
 $batchnum ||= new_batchnum();
+
+
 my $source = $adf ? 'ADF' : 'Flatbed';
 my $batchfmt = batchfmt($batchnum, $out_format);
 my @batch_count = $numpages ? ("--batch-count=".$numpages) : ();
 
 $start = $last_odd + 1 if $last_odd and not $start;
+
+unless ($start) {
+    my @pages = pages(listbatch($inbox, $batchnum));
+    err("batch %s has odd pages") if $odd and (any { is_odd($_) } @pages);
+    err("batch %s has pages") if @pages;
+}
+
 $start ||= 1;
+
 my $increment = do {
     if ($odd) { 2 }
     elsif ($even) { -2 }

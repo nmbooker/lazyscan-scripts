@@ -6,7 +6,7 @@ use v5.10;
 use warnings;
 use strict;
 use FindBin qw/$RealBin/;
-use lib File::Spec->catfile($RealBin, '../lib');
+use lib File::Spec->catfile($RealBin, 'lib');
 use LazyScan qw/scanhome chunk_batches batch_size/;
 use List::Util qw/min max sum/;
 use autodie;
@@ -15,7 +15,7 @@ use File::Slurp qw/read_file write_file/;
 my $options = get_options();
 warn "Not yet cron-safe - need to use locks";
 
-my $mkiso = File::Spec->catfile($RealBin, '..', 'mkiso');
+my $mkiso = File::Spec->catfile($RealBin, 'mkiso');
 
 my $last_minsize = 550e6;
 my $maxsize = 650e6;
@@ -93,11 +93,11 @@ __END__
 
 =head1 NAME
 
-build_isos - BRIEF_DESCRIPTION
+build-isos - BRIEF_DESCRIPTION
 
 =head1 SYNOPSIS
 
-build_isos [options]
+build-isos [options]
 
  Options:
     -h, --help              brief help message

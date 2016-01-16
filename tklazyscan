@@ -11,18 +11,29 @@ use File::Spec;
 my $mw = MainWindow->new();
 
 my $mode = '--grey';
-my $use_adf = 0;
+my $source = 'flatbed';
+my @sources = (
+    flatbed => 'Flatbed',
+    adf => 'Feeder Simplex',
+    adf_odd => 'Feeder Duplex Odd',
+    adf_even => 'Feeder Duplex Even',
+);
 
 $mw->Label(-text => 'lazyscan')->pack;
+$mw->Label(-text => 'Scan mode:')->pack;
 $mw->Radiobutton(
     -text => $_, -value => $_,
     -variable => \$mode,
 )->pack for qw/--black --grey --colour/;
 
-$mw->Checkbutton(
-    -text => 'Feeder (--adf)',
-    -variable => \$use_adf,
-)->pack;
+$mw->Label(-text => 'Source document type:')->pack;
+while (my $value = shift(@sources)) {
+    my $text = shift(@sources) // break;
+    $mw->Radiobutton(
+        -text => $text, -value => $value,
+        -variable => \$source,
+    )->pack
+}
 
 $mw->Button(
     -text => 'Scan',
@@ -37,15 +48,24 @@ $mw->Button(
 MainLoop;
 
 sub scan {
+    my @adfopts;
+    if ($source =~ /^adf/) {
+        push @adfopts, '--adf';
+        push(@adfopts, '--even') if ($source eq 'adf_even');
+        push(@adfopts, '--odd') if ($source eq 'adf_odd');
+    }
     my @cmd = (
         qw(uxterm -e),
         File::Spec->catfile($RealBin, 'runwait'),
         File::Spec->catfile($RealBin, 'lazyscan'),
-        $mode);
-    push @cmd, '--adf' if $use_adf;
+        $mode,
+        @adfopts,
+    );
     say "@cmd";
     unless ($ENV{FAKE}) {
         my $ret = system(@cmd);
         say "Exit code: $ret";
     }
+    if ($source eq 'adf_even') { $source = 'adf_odd' }
+    elsif ($source eq 'adf_odd') { $source = 'adf_even' }
 }

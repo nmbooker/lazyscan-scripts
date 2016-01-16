@@ -29,5 +29,5 @@ generate-catalogue > "$CATALOGUE"
 genisoimage -quiet -V "$LABEL" -J -r -o "${ISOS}/${ISONAME}" -graft-points -path-list "$CATALOGUE" || exit 3
 cd "$ISOS" || exit 4
 sha1sum "$ISONAME" > "$ISONAME.sha1" || exit 4
-ln -sf "$ISOS/$ISONAME" "${HOME}/Desktop/"
+ln -sf "$ISOS/$ISONAME" "$ISOS/${ISONAME}.sha1" "${HOME}/Desktop/"
 echo "$ISONAME"

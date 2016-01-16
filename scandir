@@ -33,7 +33,7 @@ As a bonus, uses File::Spec to join further PATHS specified as args onto the end
     $ scandir inbox
     /home/user/scan/inbox
 
-    $ SCANDIR=/foo scandir inbox
+    $ SCANHOME=/foo scandir inbox
     /foo/inbox
 
 =cut

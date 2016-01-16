@@ -8,6 +8,8 @@ use FindBin qw/$RealBin/;
 use lib catfile($RealBin, 'lib');
 
 use LazyScan qw/scanhome new_batchnum batchfmt listbatch pages lastbatch/;
+use LazyScan::Locking qw/with_dir_locked/;
+use LazyScan::ScriptUtil qw/mutex is_even is_odd err errf/;
 use LockFile::Simple;
 use autodie qw/:io/;
 use Getopt::Long qw/:config gnu_getopt no_ignore_case/;
@@ -76,89 +78,64 @@ if ($even) {
 }
 
 
-sub mutex {
-    my $count = 0;
-    foreach my $opt (@_) {
-        $count++ if $opt;
-    }
-    return $count <= 1;
-}
 
-sub is_even { $_[0] % 2 == 0 }
-sub is_odd { $_[0] % 2 == 1 }
 
-sub err {
-    my $msg = shift;
-    die "$0: Error: $msg\n";
-}
+my $ret;
+with_dir_locked(
+    dir => $scanhome,
+    do => sub {
+        $batchnum ||= new_batchnum();
 
-sub errf {
-    my ($fmt, @args) = @_;
-    die sprintf("$0: Error: $fmt\n", @args);
-}
 
-my $lockmgr = LockFile::Simple->make(-autoclean => 1, -warn => 1);
-my $lock;
-for (catfile($scanhome, '.dir')) {
-    unless ($lock = $lockmgr->trylock($_)) {
-        if ($!) {
-            err("Cannot lock $_ : $!");
+        my $source = $adf ? 'ADF' : 'Flatbed';
+        my $batchfmt = batchfmt($batchnum, $out_format);
+        my @batch_count = $numpages ? ("--batch-count=".$numpages) : ();
+
+        unless ($start) {
+            my @pages = pages(listbatch($inbox, $batchnum));
+            err("batch %s has odd pages") if $odd and (any { is_odd($_) } @pages);
+            err("batch %s has pages") if @pages;
         }
-        else {
-            err("Cannot lock $_ : already in use?");
+
+        $start ||= 1;
+
+        my $increment = do {
+            if ($odd) { 2 }
+            elsif ($even) { -2 }
+            else { 1 }
+        };
+
+        my @batch_prompt = ($adf or ($noprompt and $numpages and $numpages == 1)) ? () : qw/--batch-prompt/;
+        my @mode = $mode ? ('--mode', $mode) : ();
+
+        sub opt_if_true {
+            my ($option, $value) = @_;
+            return $value ? ($option, $value) : ();
         }
-    }
-}
-$batchnum ||= new_batchnum();
 
+        my @cmd = (
+            'scanimage',
+            '--source', $source,
+            opt_if_true('--mode', $mode),
+            '--format', $out_format,
+            '--resolution', $resolution,
+            qw/
+                  --compression None
+                  -x 210 -y 297
+              /,
+            '--batch='.$batchfmt,
+            '--batch-increment='.$increment,
+            @batch_count,
+            @batch_prompt,
+            '--batch-start', $start,
+        );
 
-my $source = $adf ? 'ADF' : 'Flatbed';
-my $batchfmt = batchfmt($batchnum, $out_format);
-my @batch_count = $numpages ? ("--batch-count=".$numpages) : ();
-
-unless ($start) {
-    my @pages = pages(listbatch($inbox, $batchnum));
-    err("batch %s has odd pages") if $odd and (any { is_odd($_) } @pages);
-    err("batch %s has pages") if @pages;
-}
-
-$start ||= 1;
-
-my $increment = do {
-    if ($odd) { 2 }
-    elsif ($even) { -2 }
-    else { 1 }
-};
-
-my @batch_prompt = ($adf or ($noprompt and $numpages and $numpages == 1)) ? () : qw/--batch-prompt/;
-my @mode = $mode ? ('--mode', $mode) : ();
-
-sub opt_if_true {
-    my ($option, $value) = @_;
-    return $value ? ($option, $value) : ();
-}
-
-my @cmd = (
-    'scanimage',
-    '--source', $source,
-    opt_if_true('--mode', $mode),
-    '--format', $out_format,
-    '--resolution', $resolution,
-    qw/
-          --compression None
-          -x 210 -y 297
-      /,
-    '--batch='.$batchfmt,
-    '--batch-increment='.$increment,
-    @batch_count,
-    @batch_prompt,
-    '--batch-start', $start,
+        say STDERR "@cmd";
+        $ret = system @cmd;
+        say "Batch number: $batchnum";
+    },
 );
-
-say STDERR "@cmd";
-my $ret = system @cmd;
-say "Batch number: $batchnum";
-$lock->release if $lock;
+$ret //= 0;
 exit $ret;
 
 

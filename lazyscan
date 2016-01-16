@@ -20,7 +20,7 @@ my $out_format = 'png';
 my $batchnum;
 my $start;
 my $noprompt;
-my ($even, $odd, $last_odd);
+my ($even, $odd);
 my $resolution = 200;   # A better default for what I'm doing than scanimage's of 100
 
 GetOptions(
@@ -37,7 +37,6 @@ GetOptions(
     "start=i" => \$start,
     "even|E" => \$even,
     "odd|O" => \$odd,
-    "last-odd|L=i" => \$last_odd,
     "resolution|r=i" => \$resolution,
     "noprompt" => \$noprompt,
    ) or die("$0: Error in command line arguments\n");
@@ -56,7 +55,8 @@ $mode = 'Color' if $colour;
 $mode //= 'Gray';   # default if none selected by other means
 
 err("--even and --odd are mutually exclusive") if $even and $odd;
-err("--start and --last-odd are mutually exclusive") if $start and $last_odd;
+err("have --odd but --start is even") if $odd and $start and is_even($start);
+err("have --even but --start is odd") if $even and $start and is_odd($start);
 
 my $scanhome = scanhome();
 my $inbox = catfile($scanhome, 'inbox');
@@ -65,15 +65,14 @@ if ($even) {
     $batchnum //= lastbatch($inbox);
     my @pages = pages(listbatch($inbox, $batchnum));
     errf('Batch %s has no odd pages', $batchnum) unless (any { is_odd($_) } @pages);
-    unless ($start or $last_odd) {
+    unless ($start) {
         if (any { is_even($_) } @pages) {
-            errf('Batch %s has even pages.  To continue specify --start or --last-odd', $batchnum);
+            errf('Batch %s has even pages.  To continue specify --start', $batchnum);
         }
-        $last_odd //= max(grep { is_odd($_) } @pages) unless $start;
+        $start //= max(grep { is_odd($_) } @pages) + 1;
     }
 }
 
-err("--last-odd argument is even") if defined($last_odd) and is_even($last_odd);
 
 sub mutex {
     my $count = 0;
@@ -101,8 +100,6 @@ $batchnum ||= new_batchnum();
 my $source = $adf ? 'ADF' : 'Flatbed';
 my $batchfmt = batchfmt($batchnum, $out_format);
 my @batch_count = $numpages ? ("--batch-count=".$numpages) : ();
-
-$start = $last_odd + 1 if $last_odd and not $start;
 
 unless ($start) {
     my @pages = pages(listbatch($inbox, $batchnum));
@@ -260,16 +257,9 @@ if you wish, if you know what you're doing.
 
 =over 8
 
-=item --last-odd <n> | -L <n>
-
-Specify last odd page number.  Use with C<--even> and WITH CARE if monkey-patching existing batches etc.
-
-Take care with this option - it will overwrite files in the batch if they
-already exist and disable all checks for whether even-numbered files exist in the batch.
-
 =item --batchnum <n> | -N <n>
 
-Specify the batch number to continue.  Usually used WITH CARE with C<--even> and C<--last-odd>.
+Specify the batch number to continue.  Usually used WITH CARE with C<--even>.
 
 =item --resolution <r> | -r <r>
 

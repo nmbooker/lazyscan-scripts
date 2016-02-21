@@ -44,6 +44,14 @@ I might find these useful for doing drag-and-drop document organisation tools:
   http://perl.com/pub/2001/12/11/perltk.html
   http://www.perlmonks.org/?node_id=269065
 
+=head1 USEFUL ONE-LINERS
+
+These may end up in scripts eventually.
+
+=head2 Get list of indexed batch ranges
+
+    cat inbox/batch_index.txt | perl -Mv5.10 -nae ' say $F[0] unless /^#/ '
+
 =head1 COPYRIGHT AND LICENSE
 
 Copyright (C) 2016, Nicholas Booker C<< <nmb@nickbooker.uk> >>

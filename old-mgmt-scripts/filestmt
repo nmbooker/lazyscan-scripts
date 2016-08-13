@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Takes a barclaycard statement and (attempts to) name it according to
+# the date in the PDF
+
+set -e
+FILENAME="$1"
+STMTDATE="$(pdftotext "$FILENAME" - | awk '/Statement Dated/ { print $3, $4, $5 }' )"
+
+SAVEDATE="$(date -d"$STMTDATE" +"%Y-%m-%d")"
+
+cp "${FILENAME}" "../${SAVEDATE}_Statement.pdf"

@@ -18,7 +18,14 @@ my $prog = basename($0);  # can be used in error messages
 
 my $options = get_options();
 
-my @infiles = @ARGV;
+my @infiles;
+foreach (@ARGV) {
+    if (-d) {
+        say STDERR "$prog: WARNING: $_ is a directory, so skipping";
+        next;
+    }
+    push @infiles, $_;
+}
 unless (@infiles) {
     say STDERR "$prog: WARNING: no files provided on command line, exiting";
     exit;

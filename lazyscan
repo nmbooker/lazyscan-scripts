@@ -21,7 +21,7 @@ my $help;
 my $numpages;
 my $adf;
 my ($mode, $black, $grey, $colour);
-my $out_format = 'png';
+my $out_format = 'tiff';
 my $batchnum;
 my $start;
 my $noprompt;
@@ -270,7 +270,9 @@ Specify C<< --mode <m> >> parameter to scanimage.
 
 Specify alternative --format <m> parameter to scanimage.
 
-Default is to specify 'png'
+Default is to specify 'tiff'
+
+This was 'png' but it seems png support isn't compiled into scanimage in Fedora's packages.
 
 =item --start <n>
 

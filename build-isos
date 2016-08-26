@@ -36,11 +36,15 @@ sub build_chunked_isos {
         my @lines = read_file($last_iso_path, { chomp => 1 });
         $lines[0] + 1
     };
+    say "\$start = $start" if $options->{debug};
     my @chunks = chunk_batches($inbox, $maxsize, $start);
     return unless @chunks;
 
     if (sum(map { batch_size($inbox, $_) } @{$chunks[-1]}) <= $last_minsize) {
         pop @chunks;
+    }
+    unless (@chunks) {
+	say STDERR "$0: Warning: no chunks large enough for minimum size: $last_minsize";
     }
     return unless @chunks;
 

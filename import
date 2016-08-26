@@ -48,7 +48,7 @@ sub import_page($batch, $page, $sourcefile) {
         say STDERR "$prog: Skipping page $page: $new_name is a directory";
         return;
     }
-    system 'mv', $sourcefile, $new_name;
+    system $options->{copy} ? 'cp' : 'mv', $sourcefile, $new_name;
     return 1;
 }
 
@@ -62,6 +62,7 @@ sub get_options {
         help => 0,
         man => 0,
         # add further options here with their default values
+        copy => 0,
     };
 
     Getopt::Long::Configure(qw{gnu_getopt});
@@ -69,6 +70,7 @@ sub get_options {
         'h|help'    =>  \$options->{help},
         'man'       =>  \$options->{man},
         # specify further options here with references to their values in the $options hashref
+        'copy'      =>  \$options->{copy},
     );
 
     pod2usage(-exitval => 2) unless $parsed_ok;

@@ -7,6 +7,7 @@ use Tk;
 
 use FindBin qw/$RealBin/;
 use File::Spec::Functions qw/catfile/;
+use local::lib catfile($RealBin, 'support');
 use lib catfile($RealBin, 'lib');
 use LazyScan qw/scanhome/;
 

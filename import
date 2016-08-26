@@ -11,6 +11,7 @@ use feature 'signatures'; no warnings 'experimental::signatures';
 use autodie;
 use File::Spec;
 use FindBin qw/$RealBin/;
+use local::lib File::Spec->catfile($RealBin, 'support');
 use lib File::Spec->catfile($RealBin, 'lib');
 use LazyScan qw/scanhome new_batchnum batchfmt parse_filename/;
 my $prog = basename($0);  # can be used in error messages

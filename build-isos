@@ -7,6 +7,7 @@ use warnings;
 use strict;
 use FindBin qw/$RealBin/;
 use File::Spec::Functions qw/catfile/;
+use local::lib catfile($RealBin, 'support');
 use lib catfile($RealBin, 'lib');
 use LazyScan qw/scanhome chunk_batches batch_size/;
 use LazyScan::Locking qw/with_dir_locked/;

@@ -6,6 +6,7 @@ use strict;
 use warnings;
 
 use FindBin qw/$RealBin/;
+use local::lib catfile($RealBin, 'support');
 use lib File::Spec->catfile($RealBin, 'lib');
 
 use LazyScan qw/scanhome/;

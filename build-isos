@@ -45,8 +45,8 @@ sub build_chunked_isos {
     }
     unless (@chunks) {
 	say STDERR "$0: Warning: no chunks large enough for minimum size: $last_minsize";
+	return;
     }
-    return unless @chunks;
 
     build_iso($_) foreach @chunks;
 }

@@ -44,7 +44,7 @@ $mw->Button(
 )->pack;
 $mw->Button(
     -text => 'View Inbox in File Manager',
-    -command => sub { system 'nemo', catfile(scanhome(), 'inbox') }
+    -command => sub { system ($ENV{SCANFILEMAN} || 'nemo'), catfile(scanhome(), 'inbox') }
 )->pack;
 $mw->Button(
     -text => 'Quit',

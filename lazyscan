@@ -8,7 +8,8 @@ use FindBin qw/$RealBin/;
 use local::lib catfile($RealBin, 'support');
 use lib catfile($RealBin, 'lib');
 
-use LazyScan qw/scanhome new_batchnum batchfmt listbatch pages lastbatch/;
+use LazyScan::Repository;
+use LazyScan qw/listbatch pages lastbatch/;
 use LazyScan::Locking qw/with_dir_locked/;
 use LazyScan::ScriptUtil qw/mutex is_even is_odd err errf/;
 use LockFile::Simple;
@@ -16,6 +17,7 @@ use autodie qw/:io/;
 use Getopt::Long qw/:config gnu_getopt no_ignore_case/;
 use List::Util qw/any max/;
 
+my $repo = LazyScan::Repository->new();
 
 my $help;
 my $numpages;
@@ -63,8 +65,8 @@ err("--even and --odd are mutually exclusive") if $even and $odd;
 err("have --odd but --start is even") if $odd and $start and is_even($start);
 err("have --even but --start is odd") if $even and $start and is_odd($start);
 
-my $scanhome = scanhome();
-my $inbox = catfile($scanhome, 'inbox');
+my $scanhome = $repo->scanhome;
+my $inbox = $repo->inbox_path;
 
 if ($even) {
     $batchnum //= lastbatch($inbox);
@@ -85,11 +87,11 @@ my $ret;
 with_dir_locked(
     dir => $scanhome,
     do => sub {
-        $batchnum ||= new_batchnum();
+        $batchnum ||= $repo->new_batchnum();
 
 
         my $source = $adf ? 'ADF' : 'Flatbed';
-        my $batchfmt = batchfmt($batchnum, $out_format);
+        my $batchfmt = $repo->batchfmt($batchnum, $out_format);
         my @batch_count = $numpages ? ("--batch-count=".$numpages) : ();
 
         unless ($start) {
@@ -322,7 +324,7 @@ startup file (.bashrc for bash) if you wish.
 
 =head1 FILES
 
-=head2 C<$SCANHOME/.nextbatch>
+=head2 C<$SCANHOME/inbox/.nextbatch>
 
 Contains the next batch  number to use if C<--batchnum> is not specified.
 

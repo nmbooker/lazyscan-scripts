@@ -30,6 +30,7 @@ sub batchfmt {
 }
 
 sub new_batchnum {
+    my ($self) = @_;
     use autodie qw/:io/;
     my $nextbatch_path = File::Spec->catfile($self->inbox_path, '.nextbatch');
     open my $bf, '+>>', $nextbatch_path;

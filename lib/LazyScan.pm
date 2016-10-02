@@ -107,7 +107,7 @@ sub batches {
 
 sub new_batchnum {
     use autodie qw/:io/;
-    my $nextbatch_path = File::Spec->catfile(scanhome(), '.nextbatch');
+    my $nextbatch_path = File::Spec->catfile(scanhome(), 'inbox', '.nextbatch');
     open my $bf, '+>>', $nextbatch_path;
     flock($bf, LOCK_EX);
     seek($bf, 0, SEEK_SET);

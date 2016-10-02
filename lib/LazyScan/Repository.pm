@@ -1,4 +1,5 @@
 package LazyScan::Repository;
+# TODO: Rename to LazyScan::Box
 
 use v5.10;
 use strict;
@@ -45,5 +46,11 @@ sub new_batchnum {
     flock($bf, LOCK_UN);
     return $nextnum;
 }
+
+
+# TODO: list of boxes, on a new LazyScan::Repository class
+# sub boxes {
+    
+# }
 
 1;

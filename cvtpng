@@ -6,7 +6,7 @@ use warnings;
 
 use File::Spec;
 use FindBin qw/$RealBin/;
-use local::lib catfile($RealBin, 'support');
+use local::lib File::Spec->catfile($RealBin, 'support');
 use lib File::Spec->catfile($RealBin, 'lib');
 
 use File::Basename;

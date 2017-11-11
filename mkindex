@@ -1,0 +1,108 @@
+#!/usr/bin/env perl6
+
+sub MAIN(*@filenames, :$verbose=False) {
+    for @filenames -> $filename {
+        my $path = IO::Path.new($filename);
+        my ($batch_num, $page_num, $ext) = do if $path.basename ~~ /^b0* (\d+) _p0* (\d+) \. (.*)$/ {
+            $0, $1, $3
+        }
+        else {
+            die "Filename incorrectly formatted for batch";
+        }
+        say "INFO: $filename: Batch $batch_num file $page_num" if $verbose;
+        if ($filename ~~ /:i \.pdf$/) {
+            $*ERR.say("INFO: It is a PDF") if $verbose;
+            with pdf($filename, :verbose($verbose)) -> $info {
+                say "$batch_num $info";
+            }
+            else {
+                $*ERR.say("ERROR: $filename: Could not find sufficient information");
+            }
+        }
+        CATCH {
+            $*ERR.say("ERROR: $filename: $_");
+        }
+    }
+}
+
+sub pdf(Str $filename, :$verbose=False) {
+    return pdftext($filename, :verbose($verbose));
+    # At a later date, we might fall back to using OCR, but for now lets just deal with PDFs
+    # with the text in them.
+}
+
+# Named regex for natural numbers such as days and years
+my regex nat { \d+ } 
+
+# Named regex for words (runs of word characters)
+my regex word { \w+ }
+
+sub pdftext(Str $filename, :$verbose=False) {
+    my $p = run('pdftotext', $filename, '-', :out);
+    my $output = $p.out.slurp-rest;   # Note deprecated in 2017.04 onwards - TODO migrate to that and use .slurp
+    $p.out.close;
+    given ($p.exitcode) {
+        $*ERR.say: "Warning: pdftotext exited with status $_" if $_;
+    }
+
+    my @lines = $output.lines;
+
+    if (@lines[0] ~~ 'DigitalOcean' and any(@lines) ~~ /^Invoice/) {
+        # It's a digital ocean invoice
+        $*ERR.say: "INFO: It's a DigitalOcean invoice" if $verbose;
+        my $invoice-num;
+        my $invoice-date;
+        my $billing-month;
+        for @lines {
+            if /:i ^'Invoice Number: ' (\d+)/ {
+                $invoice-num = $0;
+            }
+            if /:i ^'Date Issued: ' (.+)$/ {
+                $invoice-date = parse-american-date($0.Str);
+            }
+            if /:i ^'Period: ' <month=word> \s+ \d+ \s+ '-' \s+ \d+ ',' \s+ <year=nat>$/ {
+                # Assumes each billing month runs from 1st to last day - so far this has held true for me
+                try {
+                    $billing-month = sprintf("%04d-%02d", $<year>, parse-month($<month>));
+                    CATCH { when /'Unknown month string'/ { Any } }
+                }
+            }
+        }
+        # Done separately to ensure control over ordering
+        my @words = gather {
+            .take for "!digitalocean", "!invoice";
+            take "!date:$_" with $invoice-date;
+            take "!for:$_" with $billing-month;
+            take "!invoice-number:$_" with $invoice-num;
+        };
+        return @words.join(' ');
+    }
+    return;   # Nothing matched
+}
+
+
+sub parse-american-date(Cool $dts) {
+    if $dts ~~ /^<month=word> \s+ <day=nat> \s* ',' \s+ <year=nat>$/ {
+        my ($day, $year) = map { $/{$_}.Int }, <day year>;
+        return Date.new($year, parse-month($<month>), $day);
+    }
+    die "Didn't match basic string format";
+}
+
+sub parse-month(Cool $str) {
+    given $str {
+        when /:i ^Jan/ { 1 }
+        when /:i ^Feb/ { 2 }
+        when /:i ^Mar/ { 3 }
+        when /:i ^Apr/ { 4 }
+        when /:i ^May/ { 5 }
+        when /:i ^Jun/ { 6 }
+        when /:i ^Jul/ { 7 }
+        when /:i ^Aug/ { 8 }
+        when /:i ^Sep/ { 9 }
+        when /:i ^Oct/ { 10 }
+        when /:i ^Nov/ { 11 }
+        when /:i ^Dec/ { 12 }
+        default { die "Unknown month string: $_" }
+    };
+}

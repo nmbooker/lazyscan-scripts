@@ -16,8 +16,11 @@ sub MAIN(Bool :$verbose=False, *@filenames where .elems >= 1) {
                 say "$batch_num $info";
             }
             else {
-                $*ERR.say("ERROR: $filename: Could not find sufficient information");
+                die "Could not find sufficient information";
             }
+        }
+        else {
+            die "Parsing this type of file is not yet implemented.";
         }
         CATCH {
             # Without a default, the error would be re-raised afterwards!

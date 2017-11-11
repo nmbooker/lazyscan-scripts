@@ -66,7 +66,7 @@ sub pdftext(Str $filename, :$verbose=False) {
                 # Assumes each billing month runs from 1st to last day - so far this has held true for me
                 try {
                     $billing-month = sprintf("%04d-%02d", $<year>, parse-month($<month>));
-                    CATCH { when /'Unknown month string'/ { Any } }
+                    CATCH { when /'Unknown month string'/ { } }
                 }
             }
         }

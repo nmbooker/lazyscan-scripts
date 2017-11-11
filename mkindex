@@ -1,6 +1,6 @@
 #!/usr/bin/env perl6
 
-sub MAIN(*@filenames, :$verbose=False) {
+sub MAIN(Bool :$verbose=False, *@filenames where .elems >= 1) {
     for @filenames -> $filename {
         my $path = IO::Path.new($filename);
         my ($batch_num, $page_num, $ext) = do if $path.basename ~~ /^b0* (\d+) _p0* (\d+) \. (.*)$/ {

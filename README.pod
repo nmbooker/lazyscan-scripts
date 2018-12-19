@@ -29,7 +29,7 @@ duplex ADF scanning, change resolutions etc.
 
 Debian commands for dependencies:
 
-    # apt-get install libexporter-easy-perl perl-doc libnumber-range-perl
+    # apt-get install libexporter-easy-perl perl-doc libnumber-range-perl liblocal-lib-perl liblockfile-simple-perl
     # apt-get install parallel imagemagick
 
 There's also a very primitive GUI for the most basic use cases, which needs:

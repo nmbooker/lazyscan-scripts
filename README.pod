@@ -29,7 +29,7 @@ duplex ADF scanning, change resolutions etc.
 
 Debian commands for dependencies:
 
-    # apt-get install libexporter-easy-perl perl-doc libnumber-range-perl liblocal-lib-perl liblockfile-simple-perl
+    # apt-get install libexporter-easy-perl perl-doc libnumber-range-perl liblocal-lib-perl liblockfile-simple-perl libfailures-perl
     # apt-get install parallel imagemagick
 
 There's also a very primitive GUI for the most basic use cases, which needs:
@@ -43,7 +43,7 @@ please submit a pull request to add them.
 =head2 Fedora
 
     # sudo dnf install sane-backends mageMagick
-    # sudo dnf install perl-App-cpanminus perl-local-lib perl-List-MoreUtils perl-LockFile-Simple perl-autodie perl-Try-Tiny 'perl(File::Slurp)'
+    # sudo dnf install perl-App-cpanminus perl-local-lib perl-List-MoreUtils perl-LockFile-Simple perl-autodie perl-Try-Tiny 'perl(File::Slurp)' 'perl(failures)'
     # sudo dnf install xterm perl-Tk    # for the GUI
     # cd scripts
     # cpanm -l support Exporter::Easy Number::Range failures

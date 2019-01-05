@@ -29,6 +29,7 @@ my $start;
 my $noprompt;
 my ($even, $odd);
 my $resolution = 200;   # A better default for what I'm doing than scanimage's of 100
+my $continue;
 
 GetOptions(
     "help|h|man"=> \$help,
@@ -41,6 +42,7 @@ GetOptions(
     "mode=s" => \$mode,
     "format=s" => \$out_format,
     "batchnum|N=i" => \$batchnum,
+    "continue" => \$continue,
     "start=i" => \$start,
     "even|E" => \$even,
     "odd|O" => \$odd,
@@ -55,6 +57,18 @@ if ($help) {
 
 err("--mode, --black, -b, --grey, -g, --colour and -c are mutually exclusive")
     unless mutex($mode, $black, $grey, $colour);
+unless (mutex $start, $continue) {
+    err("--continue and --start are mutually exclusive");
+    # continue's job is to override $start
+}
+unless (mutex $even, $continue) {
+    err("--even|-E and --continue are mutually exclusive");
+    # because I haven't worked out the logic to handle them both together
+}
+unless (mutex $odd, $continue) {
+    err("--odd|-O and --continue are mutually exclusive");
+    # because I haven't worked out the logic to handle them both together
+}
 
 $mode = 'Lineart' if $black;
 $mode = 'Gray' if $grey;
@@ -67,6 +81,13 @@ err("have --even but --start is odd") if $even and $start and is_odd($start);
 
 my $scanhome = $repo->scanhome;
 my $inbox = $repo->inbox_path;
+
+if ($continue) {
+    $batchnum ||= lastbatch($inbox);
+    unless ($even) {
+        $start = max(pages(listbatch($inbox, $batchnum))) + 1;
+    }
+}
 
 if ($even) {
     $batchnum //= lastbatch($inbox);

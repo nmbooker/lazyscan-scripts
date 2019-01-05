@@ -58,10 +58,12 @@ if ($help) {
 err("--mode, --black, -b, --grey, -g, --colour and -c are mutually exclusive")
     unless mutex($mode, $black, $grey, $colour);
 
-$mode = 'Lineart' if $black;
-$mode = 'Gray' if $grey;
-$mode = 'Color' if $colour;
-$mode //= 'Gray';   # default if none selected by other means
+$mode //= do {
+    if    ($colour) { 'Color' }
+    elsif ($grey) { 'Gray' }
+    elsif ($black) { 'Lineart' }
+    else { 'Gray' }
+};
 
 err("--even and --odd are mutually exclusive") if $even and $odd;
 err("have --odd but --start is even") if $odd and $start and is_even($start);

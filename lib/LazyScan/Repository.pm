@@ -7,6 +7,7 @@ use warnings;
 use File::Spec;
 use Fcntl qw/:flock SEEK_SET/;
 use LazyScan;
+use LazyScan::ScriptUtil qw/$lookup/;
 
 use Moo;
 
@@ -31,7 +32,7 @@ sub batchfmt {
 }
 
 sub new_batchnum {
-    my ($self) = @_;
+    my ($self, %opts) = @_;
     use autodie qw/:io/;
     my $nextbatch_path = File::Spec->catfile($self->inbox_path, '.nextbatch');
     open my $bf, '+>>', $nextbatch_path;
@@ -40,9 +41,12 @@ sub new_batchnum {
     my $nextnum = <$bf>;
     chomp $nextnum;
     $nextnum ||= 1;
-    seek($bf, 0, SEEK_SET);
-    truncate($bf, 0);
-    say $bf ($nextnum + 1);
+    my $should_increment = (\%opts)->$lookup('increment', default => 1);
+    if ($should_increment) {
+        seek($bf, 0, SEEK_SET);
+        truncate($bf, 0);
+        say $bf ($nextnum + 1);
+    }
     flock($bf, LOCK_UN);
     return $nextnum;
 }

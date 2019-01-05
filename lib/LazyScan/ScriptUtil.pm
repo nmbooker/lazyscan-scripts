@@ -10,8 +10,12 @@ use Exporter::Easy (
         is_odd
         err
         errf
+        lookup
+        $lookup
     /],
 );
+
+use failures qw/lookup/;
 
 sub mutex {
     my $count = 0;
@@ -33,5 +37,25 @@ sub errf {
     my ($fmt, @args) = @_;
     die sprintf("$0: Error: $fmt\n", @args);
 }
+
+sub lookup {
+    my ($hash, $key, %options) = @_;
+    return do {
+        if (exists $hash->{$key}) {
+            $hash->{$key}
+        }
+        elsif (exists $options{default}) {
+            $options{default}
+        }
+        else {
+            failure::lookup->throw({
+                msg => "key doesn't exist: $key",
+                payload => { key => $key },
+            });
+        }
+    };
+}
+
+our $lookup = \&lookup;
 
 1;

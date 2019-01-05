@@ -29,6 +29,7 @@ my $start;
 my $noprompt;
 my ($even, $odd);
 my $resolution = 200;   # A better default for what I'm doing than scanimage's of 100
+my $dryrun;
 
 GetOptions(
     "help|h|man"=> \$help,
@@ -46,6 +47,7 @@ GetOptions(
     "odd|O" => \$odd,
     "resolution|r=i" => \$resolution,
     "noprompt" => \$noprompt,
+    "dryrun" => \$dryrun,
    ) or die("$0: Error in command line arguments\n");
 
 if ($help) {
@@ -87,7 +89,7 @@ my $ret;
 with_dir_locked(
     dir => $scanhome,
     do => sub {
-        $batchnum ||= $repo->new_batchnum();
+        $batchnum ||= $repo->new_batchnum(increment => !$dryrun);
 
 
         my $source = $adf ? 'ADF' : 'Flatbed';
@@ -134,7 +136,14 @@ with_dir_locked(
         );
 
         say STDERR "@cmd";
-        $ret = system @cmd;
+        if ($dryrun)
+        {
+            say STDERR "Dry run - not actually running the above command.";
+        }
+        else
+        {
+            $ret = system @cmd;
+        }
         say "Batch number: $batchnum";
     },
 );

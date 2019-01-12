@@ -39,6 +39,8 @@ There's also a very primitive GUI for the most basic use cases, which needs:
 There may be some more I forgot to list - if they trip you up
 please submit a pull request to add them.
 
+Debian's C<scanimage> outputs lots of SNMP-related stuff when talking to my printer.  If this happens, install C<snmp-mibs-downloader> as described in L<https://wiki.debian.org/SNMP>
+
 
 =head2 Fedora
 

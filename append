@@ -22,12 +22,15 @@ my @origfiles = bsd_glob(File::Spec->catfile($options->{sourcedir}, 'b*.{pnm,png
 my %groups;
 OLDFILE: foreach my $origfile (@origfiles) {
     my $batch = file_batchnum($origfile);
-    unless ($batch) {
-        say STDERR "SKIP: Not part of batch: $origfile";
-        next OLDFILE;
+    if ($batch)
+    {
+        $groups{$batch} //= [];
+        push @{$groups{$batch}}, $origfile;
     }
-    $groups{$batch} //= [];
-    push @{$groups{$batch}}, $origfile;
+    else
+    {
+        say STDERR "SKIP: Not part of batch: $origfile";
+    }
 }
 
 my @origbatches = sort keys %groups;

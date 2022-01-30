@@ -122,14 +122,14 @@ with_dir_locked(
 
         my @cmd = (
             'scanimage',
+            '-d', 'hpaio:/net/Smart_Tank_Plus_570_series?hostname=hpstp570',
             '--source', $source,
             opt_if_true('--mode', $mode),
             '--format', $out_format,
             '--resolution', $resolution,
-            qw/
-                  --compression None
-                  -x 210 -y 297
-              /,
+            # '--compression', 'None',
+            '-x', '210',
+            '-y', '297',
             '--batch='.$batchfmt,
             '--batch-increment='.$increment,
             @batch_count,

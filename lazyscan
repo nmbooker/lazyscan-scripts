@@ -23,7 +23,7 @@ my $help;
 my $numpages;
 my $adf;
 my ($mode, $black, $grey, $colour);
-my $out_format = 'tiff';
+my $out_format = $ENV{SCANFORMAT} // 'tiff';
 my $batchnum;
 my $start;
 my $noprompt;
@@ -355,6 +355,10 @@ Directory which will contain all newly-scanned files.
 =head2 C<$SCANHOME>
 
 The root directory of your scan system.  Defaults to C<$HOME/scan>.
+
+=head2 C<$SCANFORMAT>
+
+The format to scan in.  Defaults to tiff as this works on both Debian and Fedora.  Debian's also supports png, my preferred format, among others.
 
 =head1 LIMITATIONS
 

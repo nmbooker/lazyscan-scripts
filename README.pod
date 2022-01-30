@@ -50,6 +50,13 @@ Debian's C<scanimage> outputs lots of SNMP-related stuff when talking to my prin
     # cd scripts
     # cpanm -l support Exporter::Easy Number::Range failures
 
+=head2 Manjaro
+
+    # sudo pamac install sane imagemagick
+    # sudo pamac install cpanminus perl-list-moreutils perl-local-lib perl-moo perl-file-slurp perl-try-tiny perl-tk xterm
+    # cd scripts
+    # cpanm -l support failures Number::Range Exporter::Easy LockFile::Simple
+
 =head2 Rakudo
 
 You also need rakudo for mkindex script.  Install the latest rakudo-star from source code
